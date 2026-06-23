@@ -1,0 +1,297 @@
+/* =========================================================================
+ * Streets Ahead — Design Tokens (colours + type)
+ * British English. Tokens use semantic naming.
+ * ========================================================================= */
+
+/* ---------- Webfonts (local) -------------------------------------------- */
+@font-face {
+  font-family: "Proxima Nova";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/ProximaNova-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Proxima Nova";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/ProximaNova-Bold.woff2") format("woff2");
+}
+/* Heavy weight not supplied — synthesised from Bold by the browser at 800. */
+@font-face {
+  font-family: "Turbinado Pro";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/TurbinadoPro-Regular.ttf") format("truetype");
+}
+
+:root {
+  /* -----------------------------------------------------------------------
+   * COLOUR — Brand
+   * The "Streets Ahead green" is a bright lime / yellow-green (#87B926),
+   * the exact value confirmed from the brand book. Because it's saturated
+   * and high-luminance, it's used as a FILL colour (buttons, banners,
+   * accent panels) — never for body text on white. For text on light
+   * backgrounds use --sa-green-900 / -800 instead.
+   * --------------------------------------------------------------------- */
+  --sa-green-900: #2D3F0A;    /* text on white · darkest */
+  --sa-green-800: #4F6F18;    /* hover for solid lime CTAs · text accent */
+  --sa-green-brand: #87B926;  /* THE BRAND. Fills, accents, banners. */
+  --sa-green-700: #87B926;    /* alias of brand (legacy token name) */
+  --sa-green-600: #9ACB44;    /* lift / hover-on-dark */
+  --sa-green-500: #B0D866;    /* secondary accent */
+  --sa-green-200: #D7E89A;    /* surface tint */
+  --sa-green-100: #ECF3D2;    /* subtle wash */
+  --sa-green-050: #F6F9E8;    /* whisper tint */
+
+  /* -----------------------------------------------------------------------
+   * COLOUR — Neutrals
+   * --------------------------------------------------------------------- */
+  --sa-ink-900:   #1A1A1A;    /* body text */
+  --sa-ink-700:   #3A3A38;    /* strong secondary */
+  --sa-ink-500:   #6B6B68;    /* meta / secondary copy */
+  --sa-ink-300:   #B5B5B0;    /* disabled / hairline */
+  --sa-ink-100:   #E8E6E0;    /* dividers, soft fills */
+
+  --sa-paper:     #FFFFFF;    /* primary surface */
+  --sa-cream:     #FAF7F1;    /* warm off-white background */
+  --sa-cream-2:   #F4EFE5;    /* alternating section background */
+
+  /* -----------------------------------------------------------------------
+   * COLOUR — Semantic / functional
+   * --------------------------------------------------------------------- */
+  --sa-success:   #5B8E1F;    /* darker green for "OK" states (legible) */
+  --sa-warning:   #B4831F;
+  --sa-danger:    #A6362C;
+  --sa-info:      #2C5A7A;
+
+  /* Property-status chips */
+  --sa-status-for-sale:    var(--sa-green-brand);
+  --sa-status-for-rent:    var(--sa-info);
+  --sa-status-sold:        var(--sa-danger);
+  --sa-status-let-agreed:  #8A6A1E;
+  --sa-status-new:         var(--sa-green-800);
+
+  /* -----------------------------------------------------------------------
+   * TYPE — Families
+   *   sans     : Proxima Nova — workhorse, UI + body + most headlines
+   *   script   : Turbinado Pro — hand-lettered script used in the wordmark
+   *              and (sparingly) for emphasis/taglines. NEVER for body.
+   *   mono     : system mono — for code, tabular numerics
+   * --------------------------------------------------------------------- */
+  --sa-font-sans:    "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+  --sa-font-display: "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+  --sa-font-script:  "Turbinado Pro", "Brush Script MT", cursive;
+  --sa-font-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* -----------------------------------------------------------------------
+   * TYPE — Scale
+   * --------------------------------------------------------------------- */
+  --sa-fz-display-xl: 88px;
+  --sa-fz-display:    64px;
+  --sa-fz-h1:         44px;
+  --sa-fz-h2:         32px;
+  --sa-fz-h3:         24px;
+  --sa-fz-h4:         20px;
+  --sa-fz-body:       18px;
+  --sa-fz-body-sm:    15px;
+  --sa-fz-micro:      12px;
+
+  --sa-lh-tight:  1.08;
+  --sa-lh-snug:   1.2;
+  --sa-lh-normal: 1.4;
+  --sa-lh-relaxed: 1.55;
+
+  --sa-tracking-display: -0.02em;
+  --sa-tracking-tight:   -0.01em;
+  --sa-tracking-normal:    0em;
+  --sa-tracking-eyebrow: 0.16em;
+  --sa-tracking-wide:    0.32em;
+
+  /* -----------------------------------------------------------------------
+   * SPACING — 4px base
+   * --------------------------------------------------------------------- */
+  --sa-sp-1: 4px;   --sa-sp-2: 8px;   --sa-sp-3: 12px;  --sa-sp-4: 16px;
+  --sa-sp-5: 24px;  --sa-sp-6: 32px;  --sa-sp-7: 48px;  --sa-sp-8: 64px;
+  --sa-sp-9: 96px;  --sa-sp-10: 128px;
+
+  /* -----------------------------------------------------------------------
+   * RADII
+   * --------------------------------------------------------------------- */
+  --sa-radius-xs: 2px;
+  --sa-radius-sm: 4px;
+  --sa-radius-md: 8px;
+  --sa-radius-lg: 14px;
+  --sa-radius-xl: 24px;
+  --sa-radius-pill: 999px;
+
+  /* -----------------------------------------------------------------------
+   * BORDERS
+   * --------------------------------------------------------------------- */
+  --sa-border-hairline: 1px solid var(--sa-ink-100);
+  --sa-border-strong:   1px solid var(--sa-ink-300);
+  --sa-border-brand:    1px solid var(--sa-green-brand);
+
+  /* -----------------------------------------------------------------------
+   * ELEVATION
+   * --------------------------------------------------------------------- */
+  --sa-elev-0: none;
+  --sa-elev-1: 0 1px 2px rgba(20, 30, 25, 0.06);
+  --sa-elev-2: 0 6px 18px rgba(20, 30, 25, 0.08);
+  --sa-elev-3: 0 18px 48px rgba(20, 30, 25, 0.10);
+  --sa-elev-inset: inset 0 0 0 1px var(--sa-ink-100);
+
+  /* -----------------------------------------------------------------------
+   * MOTION
+   * --------------------------------------------------------------------- */
+  --sa-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --sa-ease-emph:     cubic-bezier(0.16, 1, 0.3, 1);
+  --sa-dur-fast: 120ms;
+  --sa-dur-base: 200ms;
+  --sa-dur-slow: 320ms;
+
+  /* -----------------------------------------------------------------------
+   * LAYOUT
+   * --------------------------------------------------------------------- */
+  --sa-container-max: 1200px;
+  --sa-slide-w: 1920px;
+  --sa-slide-h: 1080px;
+}
+
+/* =========================================================================
+ * SEMANTIC ELEMENT STYLES
+ * ========================================================================= */
+
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  font-family: var(--sa-font-sans);
+  font-size: var(--sa-fz-body);
+  line-height: var(--sa-lh-relaxed);
+  color: var(--sa-ink-900);
+  background: var(--sa-cream);
+}
+
+h1, .sa-h1 {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  font-size: var(--sa-fz-h1);
+  line-height: var(--sa-lh-tight);
+  letter-spacing: var(--sa-tracking-tight);
+  color: var(--sa-ink-900);
+  margin: 0 0 var(--sa-sp-5);
+  text-wrap: balance;
+}
+
+h2, .sa-h2 {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  font-size: var(--sa-fz-h2);
+  line-height: var(--sa-lh-snug);
+  letter-spacing: var(--sa-tracking-tight);
+  color: var(--sa-ink-900);
+  margin: 0 0 var(--sa-sp-4);
+  text-wrap: balance;
+}
+
+h3, .sa-h3 {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  font-size: var(--sa-fz-h3);
+  line-height: var(--sa-lh-snug);
+  color: var(--sa-ink-900);
+  margin: 0 0 var(--sa-sp-3);
+}
+
+h4, .sa-h4 {
+  font-family: var(--sa-font-sans);
+  font-weight: 700;
+  font-size: var(--sa-fz-h4);
+  line-height: var(--sa-lh-snug);
+  color: var(--sa-ink-900);
+  margin: 0 0 var(--sa-sp-2);
+}
+
+p, .sa-p {
+  font-size: var(--sa-fz-body);
+  line-height: var(--sa-lh-relaxed);
+  color: var(--sa-ink-900);
+  margin: 0 0 var(--sa-sp-4);
+  text-wrap: pretty;
+  max-width: 68ch;
+}
+
+small, .sa-meta {
+  font-size: var(--sa-fz-body-sm);
+  color: var(--sa-ink-500);
+  line-height: var(--sa-lh-normal);
+}
+
+.sa-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: var(--sa-tracking-eyebrow);
+  text-transform: uppercase;
+  /* Eyebrow uses the DARKER green for legibility on white */
+  color: var(--sa-green-800);
+}
+
+.sa-rule {
+  letter-spacing: var(--sa-tracking-wide);
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sa-green-800);
+}
+
+.sa-display {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  font-size: var(--sa-fz-display);
+  line-height: var(--sa-lh-tight);
+  letter-spacing: var(--sa-tracking-display);
+}
+
+.sa-display-xl {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  font-size: var(--sa-fz-display-xl);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+}
+
+/* Script accent — for the "ahead" word in the wordmark and the occasional
+ * tagline emphasis. Bigger optical size than Proxima at the same point size,
+ * so size it ~0.95–1.05× of the adjacent sans depending on context. */
+.sa-script {
+  font-family: var(--sa-font-script);
+  font-weight: 400;
+}
+
+code, .sa-code {
+  font-family: var(--sa-font-mono);
+  font-size: 0.92em;
+  background: var(--sa-green-050);
+  padding: 1px 6px;
+  border-radius: var(--sa-radius-sm);
+  color: var(--sa-green-900);
+}
+
+a {
+  /* Links use darker green so they pass contrast on white */
+  color: var(--sa-green-800);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--sa-green-900); }
+
+/* Currency / pricing */
+.sa-price {
+  font-family: var(--sa-font-display);
+  font-weight: 700;
+  color: var(--sa-green-800);
+  letter-spacing: var(--sa-tracking-tight);
+}

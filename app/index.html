@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SA\OS · Streets Ahead Operating System</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  /* ============================================================
+   * SA\OS app shell — built on the Streets Ahead design tokens
+   * ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--sa-cream); color: var(--sa-ink-900); font-size: var(--sa-fz-body-sm); }
+  button { font-family: inherit; }
+
+  /* ---- Brand wordmark ---- */
+  .saos {
+    font-family: var(--sa-font-display); font-weight: 700; letter-spacing: -0.02em;
+    color: var(--sa-green-900); white-space: nowrap;
+  }
+  .saos .slash { color: var(--sa-green-brand); }
+
+  /* =============================== LOGIN =============================== */
+  #login { position: fixed; inset: 0; display: grid; grid-template-columns: 1.05fr 0.95fr; z-index: 50; }
+  #login .brandside {
+    background: var(--sa-ink-700); color: #fff; padding: var(--sa-sp-8) var(--sa-sp-8);
+    display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;
+  }
+  #login .brandside::after {
+    content:""; position:absolute; right:-120px; bottom:-120px; width:420px; height:420px;
+    background: radial-gradient(closest-side, var(--sa-green-brand), transparent 70%); opacity:.22;
+  }
+  #login .brandside .top .saos { font-size: 30px; color:#fff; }
+  #login .brandside .top .saos .slash { color: var(--sa-green-brand); }
+  #login .brandside .pitch { max-width: 30ch; position: relative; }
+  #login .brandside .pitch h1 { color:#fff; font-size: 42px; line-height: 1.05; margin: 0 0 var(--sa-sp-4); }
+  #login .brandside .pitch p { color: rgba(255,255,255,0.82); font-size: 17px; max-width: none; margin: 0; }
+  #login .brandside .feet { display:flex; gap: var(--sa-sp-5); position: relative; }
+  #login .brandside .feet div { font-size: 13px; color: rgba(255,255,255,0.7); }
+  #login .brandside .feet b { display:block; color:#fff; font-size: 22px; font-family: var(--sa-font-display); }
+
+  #login .formside { background: var(--sa-paper); display: grid; place-items: center; padding: var(--sa-sp-6); }
+  #login .card { width: 100%; max-width: 360px; }
+  #login .card .eyebrow { margin-bottom: var(--sa-sp-3); }
+  #login .card h2 { font-size: 28px; margin: 0 0 var(--sa-sp-2); }
+  #login .card .lede { color: var(--sa-ink-500); margin: 0 0 var(--sa-sp-6); font-size: 15px; }
+  #login .card label { display:block; font-size:12px; font-weight:700; color: var(--sa-ink-500); margin: var(--sa-sp-4) 0 6px; text-transform: uppercase; letter-spacing: var(--sa-tracking-eyebrow); }
+  #login .card input { width:100%; border: var(--sa-border-hairline); border-radius: var(--sa-radius-md); padding: 12px 14px; font: inherit; font-size: 15px; }
+  #login .card input:focus { outline: 2px solid var(--sa-green-brand); outline-offset: 1px; border-color: var(--sa-green-brand); }
+  #login .card .signin { margin-top: var(--sa-sp-6); width:100%; border:0; border-radius: var(--sa-radius-md); padding: 14px; background: var(--sa-green-brand); color:#fff; font-weight:700; font-size: 16px; cursor:pointer; }
+  #login .card .signin:hover { background: var(--sa-green-800); }
+  #login .card .demo-note { margin-top: var(--sa-sp-4); font-size: 12px; color: var(--sa-ink-300); text-align:center; }
+
+  /* =============================== APP =============================== */
+  #app { display: none; grid-template-rows: auto 1fr; height: 100vh; }
+  #app.on { display: grid; }
+
+  .topbar { display:grid; grid-template-columns: 252px 1fr; align-items:stretch; background: var(--sa-paper); border-bottom: var(--sa-border-hairline); z-index: 20; }
+  .topbar .tl { display:flex; align-items:center; gap: var(--sa-sp-3); padding: var(--sa-sp-3) var(--sa-sp-4); border-right: var(--sa-border-hairline); min-width:0; }
+  .topbar .tr { display:flex; align-items:center; gap: var(--sa-sp-4); padding: var(--sa-sp-3) var(--sa-sp-5) var(--sa-sp-3) var(--sa-sp-6); min-width:0; }
+  .topbar .burger { display:none; border:0; background:none; cursor:pointer; padding:6px; border-radius: var(--sa-radius-sm); }
+  .topbar .burger span, .topbar .burger span::before, .topbar .burger span::after { display:block; width:20px; height:2px; background: var(--sa-ink-900); position:relative; }
+  .topbar .burger span::before { content:""; position:absolute; top:-6px; } .topbar .burger span::after { content:""; position:absolute; top:6px; }
+  .topbar .modtitle { font-weight:700; font-size: 16px; }
+  .topbar .modtitle small { display:block; font-weight:700; font-size:10px; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-green-800); }
+  .topbar .search { flex:1; max-width: 420px; }
+  .topbar .search input { width:100%; border: var(--sa-border-hairline); background: var(--sa-cream); border-radius: var(--sa-radius-pill); padding: 9px 16px; font: inherit; font-size: 13px; }
+  .topbar .spacer { flex:1; }
+  .topbar .who { display:flex; align-items:center; gap: var(--sa-sp-2); color: var(--sa-ink-500); font-size:13px; }
+  .topbar .who .name { font-weight:700; color: var(--sa-ink-900); }
+  .topbar .who .role { font-size:11px; }
+  .avatar { width:32px; height:32px; border-radius: var(--sa-radius-pill); background: var(--sa-green-brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size: 13px; }
+
+  .body { display: grid; grid-template-columns: 252px 1fr; min-height: 0; }
+
+  /* ---- Sidebar ---- */
+  .nav { background: var(--sa-paper); border-right: var(--sa-border-hairline); padding: var(--sa-sp-4) var(--sa-sp-3); overflow:auto; }
+  .nav .brand { display:flex; align-items:center; gap:8px; padding: 4px var(--sa-sp-2) var(--sa-sp-4); }
+  .nav .brand .saos { font-size: 22px; }
+  .nav .grp { font-size: 10px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-300); margin: var(--sa-sp-4) var(--sa-sp-2) var(--sa-sp-2); }
+  .nav a { display:flex; align-items:center; gap: var(--sa-sp-3); justify-content: space-between; padding: 9px var(--sa-sp-3); border-radius: var(--sa-radius-md); color: var(--sa-ink-900); text-decoration:none; font-weight:700; font-size: 14px; cursor:pointer; margin-bottom: 2px; }
+  .nav a .lead { display:flex; align-items:center; gap: var(--sa-sp-3); }
+  .nav a .ico { width:18px; height:18px; flex:none; color: var(--sa-ink-500); }
+  .nav a:hover { background: var(--sa-cream); }
+  .nav a.active { background: var(--sa-green-100); color: var(--sa-green-900); }
+  .nav a.active .ico { color: var(--sa-green-800); }
+  .nav a .count { font-size: 12px; font-weight:700; color: var(--sa-ink-500); background: var(--sa-cream-2); border-radius: var(--sa-radius-pill); padding: 1px 8px; }
+  .nav a.active .count { background:#fff; color: var(--sa-green-800); }
+  .nav a .soon { font-size: 9px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-300); border:1px solid var(--sa-ink-100); border-radius: var(--sa-radius-pill); padding: 1px 7px; }
+  .nav a.module.muted { color: var(--sa-ink-500); }
+  .nav .scrim { display:none; }
+
+  .main { min-width: 0; overflow:auto; background: var(--sa-cream); }
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ---- Shared bits ---- */
+  .pagehead { padding: var(--sa-sp-5) var(--sa-sp-6) var(--sa-sp-4); display:flex; align-items:baseline; gap: var(--sa-sp-4); flex-wrap:wrap; }
+  .pagehead h1 { font-size: var(--sa-fz-h2); margin:0; }
+  .pagehead .sub { color: var(--sa-ink-500); font-size: 14px; }
+  .pagehead .grow { flex:1; }
+  .chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:2px 10px; border-radius: var(--sa-radius-pill); white-space:nowrap; }
+  .chip-standard { background: var(--sa-green-100); color: var(--sa-green-900); }
+  .chip-serious  { background:#F6E2DF; color: var(--sa-danger); }
+  .chip-trivial  { background: var(--sa-cream-2); color: var(--sa-ink-700); }
+  .chip-ghost    { background: var(--sa-cream-2); color: var(--sa-ink-700); }
+  .chip-ok       { background: var(--sa-green-100); color: var(--sa-green-900); }
+  .chip-amber    { background:#F6EFD9; color: var(--sa-warning); }
+  .chip-dot::before { content:""; width:6px; height:6px; border-radius:50%; background: currentColor; }
+  .overdue { color: var(--sa-danger); font-weight:700; }
+  .btn { border:0; border-radius: var(--sa-radius-md); padding: 11px 16px; font: inherit; font-weight:700; font-size:14px; cursor:pointer; }
+  .btn-primary { background: var(--sa-green-brand); color:#fff; }
+  .btn-primary:hover { background: var(--sa-green-800); }
+  .btn-ghost { background: var(--sa-paper); border: var(--sa-border-hairline); color: var(--sa-ink-700); }
+  .btn-ghost:hover { border-color: var(--sa-ink-300); }
+
+  /* ---- Queue ---- */
+  .toolbar { display:flex; gap: var(--sa-sp-2); padding: 0 var(--sa-sp-6) var(--sa-sp-4); flex-wrap:wrap; }
+  .pill { border: var(--sa-border-hairline); background: var(--sa-paper); border-radius: var(--sa-radius-pill); padding: 6px 14px; font-weight:700; font-size:13px; color: var(--sa-ink-700); cursor:pointer; }
+  .pill:hover { border-color: var(--sa-ink-300); }
+  .pill.on { background: var(--sa-green-800); color:#fff; border-color: var(--sa-green-800); }
+  .pill select { border:0; background:none; font: inherit; font-weight:700; color: inherit; cursor:pointer; }
+  .list { padding: 0 var(--sa-sp-6) var(--sa-sp-7); }
+  .row { display:grid; grid-template-columns: 104px 156px 1fr 150px 150px; gap: var(--sa-sp-4); align-items:center; background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-md); padding: var(--sa-sp-4); margin-bottom: var(--sa-sp-2); cursor:pointer; transition: box-shadow var(--sa-dur-base) var(--sa-ease-standard); }
+  .row:hover { box-shadow: var(--sa-elev-2); }
+  .row .ref { font-weight:700; }
+  .row .who2 { color: var(--sa-ink-700); }
+  .row > div { min-width: 0; }
+  .row .subj { color: var(--sa-ink-500); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .row .due { text-align:right; }
+  .row .due small, .row .branch small { display:block; color: var(--sa-ink-300); font-weight:700; font-size:10px; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; }
+  .row .branch { color: var(--sa-ink-700); font-size:13px; }
+  .empty { padding: var(--sa-sp-6); text-align:center; color: var(--sa-ink-500); }
+
+  /* ---- Matter / review & approve ---- */
+  .matter { display:grid; grid-template-columns: 1fr 400px; min-height:0; }
+  .thread { border-right: var(--sa-border-hairline); }
+  .mhead { padding: var(--sa-sp-5) var(--sa-sp-6) var(--sa-sp-4); border-bottom: var(--sa-border-hairline); position: sticky; top:0; background: var(--sa-cream); z-index:2; }
+  .crumbs { color: var(--sa-ink-500); font-size:13px; margin-bottom: var(--sa-sp-2); }
+  .crumbs a { cursor:pointer; }
+  .mhead h2 { font-size: var(--sa-fz-h3); margin: 0 0 var(--sa-sp-2); }
+  .metaline { display:flex; flex-wrap:wrap; gap: var(--sa-sp-3); color: var(--sa-ink-500); font-size:13px; align-items:center; }
+  .metaline b { color: var(--sa-ink-900); }
+  .messages { padding: var(--sa-sp-5) var(--sa-sp-6) var(--sa-sp-8); }
+  .glabel { font-size:11px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-500); margin: 0 0 var(--sa-sp-3); }
+  .msg { display:grid; grid-template-columns: 34px 1fr; gap: var(--sa-sp-3); margin-bottom: var(--sa-sp-5); }
+  .msg .av { width:34px; height:34px; border-radius: var(--sa-radius-pill); display:grid; place-items:center; font-weight:700; font-size:12px; color:#fff; }
+  .av-in { background: var(--sa-ink-700); }
+  .av-sys { background: var(--sa-green-500); color: var(--sa-green-900); }
+  .av-out { background: var(--sa-green-brand); }
+  .bubble { background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); padding: var(--sa-sp-4) var(--sa-sp-5); box-shadow: var(--sa-elev-1); }
+  .bubble.out { background: var(--sa-green-050); border-color: var(--sa-green-200); }
+  .bubble .from { display:flex; gap: var(--sa-sp-3); align-items:baseline; margin-bottom: var(--sa-sp-2); flex-wrap:wrap; }
+  .bubble .from b { font-size:14px; }
+  .bubble .from .t { color: var(--sa-ink-300); font-size:12px; margin-left:auto; }
+  .bubble .tag { font-size:11px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; }
+  .tag-in { color: var(--sa-ink-500); } .tag-sys { color: var(--sa-green-800); } .tag-out { color: var(--sa-green-800); }
+  .bubble p { font-size:14px; margin: 0 0 10px; color: var(--sa-ink-900); max-width:none; line-height:1.5; }
+  .bubble p:last-child { margin-bottom:0; }
+  .pending { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-warning); }
+  .cite { color: var(--sa-green-800); font-weight:700; cursor:pointer; font-size:12px; vertical-align:super; }
+  .fill { background: var(--sa-green-100); border-radius: var(--sa-radius-sm); padding: 0 4px; color: var(--sa-green-900); font-weight:700; }
+
+  .panel { overflow:auto; background: var(--sa-paper); }
+  .ptab { display:flex; gap:2px; padding: var(--sa-sp-3) var(--sa-sp-4) 0; border-bottom: var(--sa-border-hairline); position:sticky; top:0; background: var(--sa-paper); z-index:2; }
+  .ptab button { border:0; background:none; font-weight:700; font-size:13px; color: var(--sa-ink-500); padding: 8px 12px; cursor:pointer; border-bottom:2px solid transparent; }
+  .ptab button.on { color: var(--sa-green-900); border-bottom-color: var(--sa-green-brand); }
+  .psec { padding: var(--sa-sp-5); display:none; }
+  .psec.on { display:block; }
+  .citecard { border: var(--sa-border-hairline); border-radius: var(--sa-radius-md); padding: var(--sa-sp-3) var(--sa-sp-4); margin-bottom: var(--sa-sp-3); }
+  .citecard .n { display:inline-grid; place-items:center; width:20px; height:20px; border-radius: var(--sa-radius-sm); background: var(--sa-green-brand); color:#fff; font-weight:700; font-size:11px; margin-right:8px; }
+  .citecard .claim { font-size:13px; font-weight:700; }
+  .srcchip { display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; font-weight:700; color: var(--sa-green-900); background: var(--sa-green-050); border:1px solid var(--sa-green-200); border-radius: var(--sa-radius-pill); padding: 2px 10px; }
+  .quote { margin-top:8px; font-size:12px; color: var(--sa-ink-700); border-left:2px solid var(--sa-green-200); padding-left:10px; line-height:1.45; }
+  .gap { border:1px dashed var(--sa-ink-300); border-radius: var(--sa-radius-md); padding:10px 12px; margin-bottom:10px; font-size:13px; color: var(--sa-ink-700); background: var(--sa-cream); }
+  .gap b { color: var(--sa-warning); }
+  .field { margin-bottom: var(--sa-sp-4); }
+  .field label { display:block; font-size:12px; font-weight:700; color: var(--sa-ink-500); margin-bottom:6px; }
+  .field textarea, .field input[type=text], .field select { width:100%; border: var(--sa-border-hairline); border-radius: var(--sa-radius-md); padding:10px 12px; font: inherit; font-size:13px; color: var(--sa-ink-900); resize:vertical; background: var(--sa-paper); }
+  .field textarea:focus, .field input:focus, .field select:focus { outline:2px solid var(--sa-green-brand); outline-offset:2px; border-color: var(--sa-green-brand); }
+  .toggle { display:flex; align-items:center; gap:10px; padding:10px 12px; border: var(--sa-border-hairline); border-radius: var(--sa-radius-md); background: var(--sa-cream); }
+  .toggle input { width:18px; height:18px; accent-color: var(--sa-green-brand); }
+  .toggle .lab { font-weight:700; font-size:13px; } .toggle .note { font-size:12px; color: var(--sa-ink-500); }
+  .scott { margin-top:8px; font-size:12px; color: var(--sa-warning); font-weight:700; display:none; background:#F6EFD9; border-radius: var(--sa-radius-md); padding:10px 12px; }
+  .scott.show { display:block; }
+  .actions { position:sticky; bottom:0; background: var(--sa-paper); border-top: var(--sa-border-hairline); padding: var(--sa-sp-4); display:flex; gap: var(--sa-sp-2); }
+  .actions .btn-primary { flex:1; }
+
+  /* ---- Cards / generic content ---- */
+  .pad { padding: 0 var(--sa-sp-6) var(--sa-sp-8); }
+  .card { background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); padding: var(--sa-sp-5); }
+  .stack > * + * { margin-top: var(--sa-sp-4); }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: var(--sa-sp-4); }
+  .sectlabel { font-size:11px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-500); margin: var(--sa-sp-5) var(--sa-sp-6) var(--sa-sp-3); }
+
+  /* ---- Reporting ---- */
+  .cards { display:grid; grid-template-columns: repeat(4,1fr); gap: var(--sa-sp-4); padding: 0 var(--sa-sp-6) var(--sa-sp-5); }
+  .metric { background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); padding: var(--sa-sp-5); }
+  .metric .k { font-size:12px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-500); }
+  .metric .v { font-family: var(--sa-font-display); font-weight:700; font-size:40px; letter-spacing:-0.02em; color: var(--sa-green-800); margin-top:6px; }
+  .metric .d { font-size:12px; color: var(--sa-ink-500); margin-top:4px; }
+  .metric.warn .v { color: var(--sa-danger); }
+  .charts { display:grid; grid-template-columns: 1fr 1fr; gap: var(--sa-sp-4); padding: 0 var(--sa-sp-6) var(--sa-sp-5); }
+  .chart { background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); padding: var(--sa-sp-5); }
+  .chart h4 { margin: 0 0 var(--sa-sp-4); }
+  .bar { display:grid; grid-template-columns: 150px 1fr 44px; align-items:center; gap: var(--sa-sp-3); margin-bottom:12px; font-size:13px; }
+  .bar .track { background: var(--sa-cream-2); border-radius: var(--sa-radius-pill); height:12px; overflow:hidden; }
+  .bar .fillbar { height:100%; background: var(--sa-green-brand); border-radius: var(--sa-radius-pill); }
+  .bar .fillbar.amber { background: var(--sa-warning); } .bar .fillbar.red { background: var(--sa-danger); }
+  .bar .num { text-align:right; font-weight:700; color: var(--sa-ink-700); }
+  .donutwrap { display:flex; align-items:center; gap: var(--sa-sp-6); }
+  .donut { width:150px; height:150px; border-radius:50%; flex:none; display:grid; place-items:center; }
+  .donut .hole { width:96px; height:96px; background: var(--sa-paper); border-radius:50%; display:grid; place-items:center; text-align:center; }
+  .donut .hole b { font-family: var(--sa-font-display); font-size:28px; color: var(--sa-green-800); display:block; }
+  .donut .hole span { font-size:11px; color: var(--sa-ink-500); }
+  .legend div { display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:8px; }
+  .legend .sw { width:12px; height:12px; border-radius:3px; }
+
+  /* ---- Tables ---- */
+  .tbl { width:100%; border-collapse:collapse; background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); overflow:hidden; }
+  .tbl th { text-align:left; font-size:11px; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-ink-500); padding: 12px var(--sa-sp-4); border-bottom: var(--sa-border-hairline); background: var(--sa-cream); }
+  .tbl td { padding: 12px var(--sa-sp-4); border-bottom: var(--sa-border-hairline); font-size:14px; vertical-align: top; }
+  .tbl tr:last-child td { border-bottom:0; }
+  .tbl .mono { font-weight:700; }
+  .tbl .muted { color: var(--sa-ink-500); font-size:13px; }
+
+  /* ---- Coming soon module ---- */
+  .soonview { padding: var(--sa-sp-8) var(--sa-sp-6); max-width: 720px; }
+  .soonview .badge { display:inline-block; font-size:11px; font-weight:700; letter-spacing: var(--sa-tracking-eyebrow); text-transform:uppercase; color: var(--sa-green-800); background: var(--sa-green-100); border-radius: var(--sa-radius-pill); padding: 4px 12px; }
+  .soonview h1 { margin: var(--sa-sp-4) 0 var(--sa-sp-3); font-size: 36px; }
+  .soonview p { color: var(--sa-ink-700); font-size: 17px; max-width: 56ch; }
+  .soonview .preview { margin-top: var(--sa-sp-6); display:grid; grid-template-columns: repeat(3,1fr); gap: var(--sa-sp-4); }
+  .soonview .ph { background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: var(--sa-radius-lg); padding: var(--sa-sp-5); }
+  .soonview .ph .pk { font-size:12px; font-weight:700; color: var(--sa-ink-500); }
+  .soonview .ph .pl { margin-top:12px; height:8px; border-radius: var(--sa-radius-pill); background: var(--sa-cream-2); }
+  .soonview .ph .pl.s { width:60%; } .soonview .ph .pl.m { width:85%; }
+
+  /* thumbs */
+  .thumbs { display:flex; gap:8px; }
+  .thumbs button { border: var(--sa-border-hairline); background: var(--sa-paper); border-radius: var(--sa-radius-md); padding:6px 10px; cursor:pointer; font-weight:700; font-size:13px; color: var(--sa-ink-700); }
+  .thumbs button.up.on { background: var(--sa-green-100); border-color: var(--sa-green-200); color: var(--sa-green-900); }
+  .thumbs button.down.on { background:#F6E2DF; border-color:#E8C9C4; color: var(--sa-danger); }
+
+  /* ============================== RESPONSIVE ============================== */
+  @media (max-width: 1080px) {
+    .matter { grid-template-columns: 1fr; }
+    .panel { border-top: var(--sa-border-hairline); }
+    .thread { border-right:0; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .charts { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .soonview .preview { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 820px) {
+    #login { grid-template-columns: 1fr; }
+    #login .brandside { display:none; }
+    .body { grid-template-columns: 1fr; }
+    .topbar { grid-template-columns: auto 1fr; }
+    .topbar .tl { border-right:0; padding-right:0; }
+    .topbar .tr { padding-left: var(--sa-sp-4); }
+    .topbar .burger { display:block; }
+    .topbar .search { display:none; }
+    .nav { position: fixed; top:0; bottom:0; left:0; width: 270px; transform: translateX(-100%); transition: transform var(--sa-dur-base) var(--sa-ease-standard); z-index: 40; box-shadow: var(--sa-elev-3); }
+    .nav.open { transform: translateX(0); }
+    .nav .scrim { display:none; }
+    body.drawer .nav .scrim { display:block; position: fixed; inset:0; left:270px; background: rgba(20,20,20,0.3); z-index: 39; }
+    .row { grid-template-columns: 84px 1fr; row-gap:6px; }
+    .row .ref { grid-column: 2; } .row .branch, .row .due, .row .subj, .row .statecol { grid-column: 1 / -1; text-align:left; }
+    .row .due { text-align:left; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .who .meta-hide { display:none; }
+  }
+  @media (max-width: 520px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="login">
+  <div class="brandside">
+    <div class="top"><span class="saos">SA<span class="slash">\</span>OS</span></div>
+    <div class="pitch">
+      <h1>One place to run the agency.</h1>
+      <p>Your branches, your documents and your team in one system. Grounded in your own approved sources, with every action traced and audited.</p>
+    </div>
+    <div class="feet">
+      <div><b>9</b> branches, one system</div>
+      <div><b>100%</b> audited and traceable</div>
+      <div><b>6 years</b> records retained</div>
+    </div>
+  </div>
+  <div class="formside">
+    <div class="card">
+      <div class="eyebrow">Streets Ahead</div>
+      <h2>Sign in to SA<span class="saos" style="font-size:inherit"><span class="slash">\</span></span>OS</h2>
+      <p class="lede">Welcome back. Your workspace is ready.</p>
+      <label for="email">Email</label>
+      <input id="email" type="text" value="danny@streetsahead.info" />
+      <label for="pw">Password</label>
+      <input id="pw" type="password" value="............" />
+      <button class="signin" id="signin">Sign in as Danny</button>
+      <p class="demo-note">Demonstration environment. No real data is shown.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <header class="topbar">
+    <div class="tl">
+      <button class="burger" id="burger" aria-label="Menu"><span></span></button>
+      <div class="modtitle"><small id="mod-eyebrow">Module</small><span id="mod-title">Complaints</span></div>
+    </div>
+    <div class="tr">
+      <div class="search"><input type="text" placeholder="Search complaints, people, documents" /></div>
+      <span class="spacer"></span>
+      <span class="who"><span class="meta-hide"><span class="name">Danny</span><span class="role" style="color:var(--sa-ink-500)"> · Operations Director</span></span></span>
+      <span class="avatar">D</span>
+    </div>
+  </header>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <nav class="nav" id="nav">
+      <div class="brand"><span class="saos">SA<span class="slash">\</span>OS</span></div>
+
+      <div class="grp">Platform</div>
+      <a class="module" data-module="operations"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Operations</span><span class="soon">Soon</span></a>
+      <a class="module active" data-module="complaints" data-view="queue"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Complaints</span><span class="count" id="nav-open-count">7</span></a>
+      <a class="module" data-module="compliance"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Compliance</span><span class="soon">Soon</span></a>
+      <a class="module" data-module="people"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M2 21v-1a6 6 0 0 1 12 0v1"/><path d="M16 3.5a3 3 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6"/></svg>People</span><span class="soon">Soon</span></a>
+      <a class="module" data-module="fleet"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13l2-5h11l3 5"/><path d="M2 13h19v4H2z"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>Fleet Management</span><span class="soon">Soon</span></a>
+      <a class="module" data-module="bi"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Business Intelligence</span><span class="soon">Soon</span></a>
+
+      <div id="complaints-nav">
+        <div class="grp">Complaints desk</div>
+        <a data-view="queue" class="active"><span class="lead">Queue</span><span class="count" id="nav-queue-count">7</span></a>
+        <a data-view="reporting"><span class="lead">Reporting</span></a>
+        <a data-view="rules"><span class="lead">Rules &amp; tone</span></a>
+        <a data-view="examples"><span class="lead">Examples</span><span class="count">3</span></a>
+        <div class="grp">Administration</div>
+        <a data-view="library"><span class="lead">Document library</span></a>
+        <a data-view="mattertypes"><span class="lead">Matter types</span></a>
+        <a data-view="users"><span class="lead">Users &amp; roles</span></a>
+        <a data-view="audit"><span class="lead">Audit log</span></a>
+        <a data-view="settings"><span class="lead">Settings</span></a>
+      </div>
+      <div class="scrim" id="scrim"></div>
+    </nav>
+
+    <!-- Main -->
+    <main class="main" id="main">
+
+      <!-- QUEUE -->
+      <section class="view active" id="view-queue">
+        <div class="pagehead">
+          <h1>Complaints queue</h1>
+          <span class="sub" id="queue-sub"></span>
+        </div>
+        <div class="toolbar" id="queue-toolbar">
+          <button class="pill on" data-filter="open">Open</button>
+          <button class="pill" data-filter="awaiting">Awaiting me</button>
+          <button class="pill" data-filter="scott">Awaiting Scott</button>
+          <button class="pill" data-filter="overdue">Overdue</button>
+          <button class="pill" data-filter="sent">Sent</button>
+          <button class="pill" data-filter="all">All</button>
+          <span class="pill"><select id="f-branch"><option value="">All branches</option></select></span>
+          <span class="pill"><select id="f-sev"><option value="">Any severity</option><option>Trivial</option><option>Standard</option><option>Serious</option></select></span>
+        </div>
+        <div class="list" id="queue-list"></div>
+      </section>
+
+      <!-- MATTER / REVIEW & APPROVE -->
+      <section class="view" id="view-matter"></section>
+
+      <!-- REPORTING -->
+      <section class="view" id="view-reporting"></section>
+
+      <!-- RULES -->
+      <section class="view" id="view-rules"></section>
+
+      <!-- EXAMPLES -->
+      <section class="view" id="view-examples"></section>
+
+      <!-- DOCUMENT LIBRARY -->
+      <section class="view" id="view-library"></section>
+
+      <!-- MATTER TYPES -->
+      <section class="view" id="view-mattertypes"></section>
+
+      <!-- USERS -->
+      <section class="view" id="view-users"></section>
+
+      <!-- AUDIT -->
+      <section class="view" id="view-audit"></section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings"></section>
+
+      <!-- COMING SOON MODULE -->
+      <section class="view" id="view-module"></section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const BRANCHES = ["Addiscombe (HQ)","Central Croydon","South Croydon","Purley","Coulsdon","Crystal Palace","Thornton Heath","South Norwood","New Homes"];
+
+const COMPLAINTS = [
+  { ref:"SA-COMP-2026-097524", sev:"standard", who:"A. Mensah", role:"Tenant", branch:"Purley", subj:"Retained holding deposit following unsuccessful application", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-07-10", overdue:false, comp:false, hero:true },
+  { ref:"SA-COMP-2026-0312", sev:"serious", who:"R. Okafor", role:"Tenant", branch:"South Croydon", subj:"Deposit not protected within 30 days", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-06-19", overdue:true, comp:false },
+  { ref:"SA-COMP-2026-0311", sev:"standard", who:"J. Whitmore", role:"Tenant", branch:"Coulsdon", subj:"Repairs at Lynwood Road not actioned", status:"Awaiting Scott", approval:"Pending Scott", due:"2026-07-08", overdue:false, comp:true },
+  { ref:"SA-COMP-2026-0310", sev:"trivial", who:"P. Adeyemi", role:"Public", branch:"Central Croydon", subj:"Negotiator did not return a call", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-06-30", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0309", sev:"standard", who:"K. Bright", role:"Tenant", branch:"Thornton Heath", subj:"Check-out cleaning charge disputed", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-06-18", overdue:true, comp:false },
+  { ref:"SA-COMP-2026-0308", sev:"standard", who:"L. Fernandes", role:"Buyer", branch:"Crystal Palace", subj:"Viewing access not provided as agreed", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-07-02", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0307", sev:"trivial", who:"D. Shah", role:"Landlord", branch:"Addiscombe (HQ)", subj:"Wrong service charge figure quoted", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-07-04", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0306", sev:"standard", who:"M. Caldwell", role:"Tenant", branch:"Purley", subj:"Delay returning tenancy deposit", status:"Sent", approval:"Approved", due:"2026-06-15", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0305", sev:"standard", who:"S. Patel", role:"Tenant", branch:"South Norwood", subj:"Fees charged that were not on the tariff", status:"Closed", approval:"Approved", due:"2026-06-10", overdue:false, comp:true },
+  { ref:"SA-COMP-2026-0304", sev:"standard", who:"T. Nguyen", role:"Buyer", branch:"New Homes", subj:"Misleading particulars on a listing", status:"Approved", approval:"Approved", due:"2026-07-05", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0303", sev:"trivial", who:"G. Owens", role:"Landlord", branch:"Coulsdon", subj:"Contractor missed appointment twice", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-07-06", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0302", sev:"standard", who:"H. Bauer", role:"Landlord", branch:"Central Croydon", subj:"Rent statement errors", status:"Changes requested", approval:"Changes requested", due:"2026-07-01", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0301", sev:"standard", who:"F. Adeyinka", role:"Vendor", branch:"South Croydon", subj:"Handling of an offer on a sale", status:"Sent", approval:"Approved", due:"2026-06-20", overdue:false, comp:false },
+  { ref:"SA-COMP-2026-0300", sev:"serious", who:"Resident", role:"Public", branch:"Addiscombe (HQ)", subj:"Conduct and noise at a managed block", status:"Awaiting Danny", approval:"Pending Danny", due:"2026-06-28", overdue:true, comp:false }
+];
+
+/* Rich matter details. The hero is fully authored; others fall back to a generic builder. */
+const DETAILS = {
+  "SA-COMP-2026-097524": {
+    received:"22 Jun, 12:53",
+    inbound:"I am writing to complain about the £461.53 holding deposit you have retained after our tenancy application did not proceed. We were told the deposit was kept because we did not provide a guarantor or pay rent in advance, but no one asked us about our previous rental history before we paid. We believe the deposit should be refunded in full and would like this dealt with formally.",
+    ack:"Thank you for getting in touch. Your complaint is logged under reference SA-COMP-2026-097524. We will look into this and write to you with a full response by 10 July 2026. Your point of contact is Danny.",
+    draft:[
+      "Dear Mr Mensah, I have reviewed your complaint about the £461.53 holding deposit retained after your tenancy application did not proceed.",
+      "A holding deposit must be repaid where the parties fail to enter into a tenancy before the deadline, subject to limited exceptions<span class='cite'>[1]</span>. Retention is permitted only on narrow statutory grounds: false or misleading information, a failed right to rent check, the tenant's withdrawal, or a failure to take all reasonable steps to enter the tenancy<span class='cite'>[2]</span>. In every case the reason must be given in writing within 7 days, or the deposit is repaid in full<span class='cite'>[3]</span>.",
+      "On what you describe, <b>neither the absence of a guarantor nor non-payment of rent in advance is, in itself, a lawful ground for retention</b><span class='cite'>[2]</span>. Nor does the fact that you were not asked about your rental history decide the matter. The test is materiality and reasonable reliance, not whether a particular question was asked<span class='cite'>[3]</span>.",
+      "<span class='fill'>[Danny to confirm: whether written notice of the reason for retention was given within 7 days]</span>",
+      "If you remain dissatisfied once we have worked through your complaint, you are entitled to refer the matter to The Property Ombudsman<span class='cite'>[4]</span>.",
+      "For and on behalf of Streets Ahead Complaints."
+    ],
+    cites:[
+      { claim:"A holding deposit must be repaid if the parties fail to enter a tenancy by the deadline.", src:"Tenant Fees Act 2019 · Sch 2, para 3", quote:"the holding deposit must be repaid if ... (c) the landlord and tenant fail to enter into a tenancy before the deadline." },
+      { claim:"Retention is permitted only on the limited statutory grounds.", src:"Tenant Fees Act 2019 · Sch 2, paras 8 to 12", quote:"repayment is not required where the tenant provides false or misleading information ... or fails to take all reasonable steps to enter into the tenancy." },
+      { claim:"Written notice of the reason must be given within 7 days, or repay in full.", src:"TPO Code of Practice · para 10(j)", quote:"the agent must set out the reason for retention in writing within the statutory 7 day period; if it does not, the holding deposit must be repaid in full." },
+      { claim:"The complainant may refer to TPO after the in-house procedure.", src:"Streets Ahead complaints procedure · step 8", quote:"If still dissatisfied, the customer may refer the matter to The Property Ombudsman (TPO)." }
+    ],
+    gaps:[ "the date the deposit was received and the resulting deadline.", "whether written notice of the reason was given within 7 days." ]
+  },
+  "SA-COMP-2026-0311": {
+    received:"19 Jun, 09:08",
+    inbound:"I have reported repairs at Lynwood Road three times since April and nothing has been done. The damp in the back bedroom is getting worse. I would like the work carried out and some recognition of the months we have waited.",
+    ack:"Thank you for getting in touch. Your complaint is logged under reference SA-COMP-2026-0311. We will look into this and write to you with a full response by 8 July 2026. Your point of contact is Danny.",
+    draft:[
+      "Dear Ms Whitmore, thank you for your patience while we looked into the repairs reported at the property.",
+      "Our records show repair reports were raised but not progressed within the timescales our procedure sets out<span class='cite'>[1]</span>. We accept the delay fell short of the service you should expect and we are arranging for a contractor to attend.",
+      "As a gesture of goodwill, and without admission of liability, we propose a credit of <b>£150</b> in recognition of the delay<span class='cite'>[2]</span>.",
+      "<span class='fill'>[Danny to confirm: the date the contractor can attend]</span>",
+      "If you remain dissatisfied once the work is complete, you may refer the matter to The Property Ombudsman<span class='cite'>[3]</span>.",
+      "For and on behalf of Streets Ahead Complaints."
+    ],
+    cites:[
+      { claim:"Repairs should be progressed within the procedure's timescales.", src:"Streets Ahead complaints procedure · step 4", quote:"reported repairs are logged and progressed within the timescales set out in the management agreement." },
+      { claim:"Goodwill may be offered without admission of liability.", src:"Final response (resolution offered) template", quote:"any goodwill gesture is offered without admission of liability and is subject to a second approval." },
+      { claim:"The complainant may refer to TPO after the in-house procedure.", src:"Streets Ahead complaints procedure · step 8", quote:"If still dissatisfied, the customer may refer the matter to The Property Ombudsman (TPO)." }
+    ],
+    gaps:[ "the date the contractor can attend." ]
+  },
+  "SA-COMP-2026-0312": {
+    received:"05 Jun, 16:40",
+    inbound:"My deposit was taken at the start of the tenancy in March but I have never received any prescribed information showing it is protected. I think it should have been protected within 30 days. Please confirm the scheme and provide the paperwork.",
+    ack:"Thank you for getting in touch. Your complaint is logged under reference SA-COMP-2026-0312. We will look into this and write to you with a full response by 19 June 2026. Your point of contact is Danny.",
+    draft:[
+      "Dear Mr Okafor, thank you for raising this. I understand your concern about the protection of your tenancy deposit.",
+      "A tenancy deposit must be protected in an authorised scheme and the prescribed information given to the tenant within the statutory period<span class='cite'>[1]</span>. This is a serious point and I am treating it with priority<span class='cite'>[2]</span>.",
+      "<span class='fill'>[Danny to confirm: the scheme the deposit is protected in and the date the prescribed information was issued]</span>",
+      "If you remain dissatisfied once we have responded in full, you may refer the matter to The Property Ombudsman<span class='cite'>[3]</span>.",
+      "For and on behalf of Streets Ahead Complaints."
+    ],
+    cites:[
+      { claim:"Deposits must be protected and prescribed information given in time.", src:"Streets Ahead complaints procedure · step 4", quote:"deposit protection and prescribed information are handled within the statutory period." },
+      { claim:"Serious matters are escalated to the handler at once.", src:"Streets Ahead complaints procedure · severity triggers", quote:"matters touching the deposit scheme, the Ombudsman or potential loss are routed straight to the handler." },
+      { claim:"The complainant may refer to TPO after the in-house procedure.", src:"Streets Ahead complaints procedure · step 8", quote:"If still dissatisfied, the customer may refer the matter to The Property Ombudsman (TPO)." }
+    ],
+    gaps:[ "the scheme the deposit is protected in.", "the date the prescribed information was issued." ]
+  }
+};
+
+/* Generic builder for matters without authored detail */
+function buildGeneric(c){
+  const first = c.who.split(" ").slice(-1)[0];
+  return {
+    received:"recent",
+    inbound:"I would like to raise a formal complaint about "+c.subj.toLowerCase()+". Please look into this and let me know what you intend to do.",
+    ack:"Thank you for getting in touch. Your complaint is logged under reference "+c.ref+". We will look into this and write to you with a full response by "+fmtDate(c.due)+". Your point of contact is Danny.",
+    draft:[
+      "Dear "+first+", thank you for getting in touch about "+c.subj.toLowerCase()+".",
+      "We are looking into the points you have raised against our complaints procedure and the records held on file<span class='cite'>[1]</span>. We will not state a position until the review is complete.",
+      "<span class='fill'>[Danny to confirm: the specific facts from our records relevant to this matter]</span>",
+      "If you remain dissatisfied once we have responded in full, you may refer the matter to The Property Ombudsman<span class='cite'>[2]</span>.",
+      "For and on behalf of Streets Ahead Complaints."
+    ],
+    cites:[
+      { claim:"The matter is handled under the published complaints procedure.", src:"Streets Ahead complaints procedure · step 1", quote:"every complaint is acknowledged, logged and investigated under the published procedure." },
+      { claim:"The complainant may refer to TPO after the in-house procedure.", src:"Streets Ahead complaints procedure · step 8", quote:"If still dissatisfied, the customer may refer the matter to The Property Ombudsman (TPO)." }
+    ],
+    gaps:[ "the specific facts from our records relevant to this matter." ]
+  };
+}
+
+const EXAMPLES = [
+  { title:"Holding deposit, statutory defence", reason:"Firm but courteous. Leads with the law, no apology before investigating, keeps the TPO route open.", src:"SA-COMP-2026-0288", added:"Danny", fb:"up" },
+  { title:"Repairs delay with goodwill", reason:"Acknowledges the delay plainly, offers goodwill without admitting liability, routes the money to Scott.", src:"SA-COMP-2026-0271", added:"Danny", fb:"up" },
+  { title:"Closure after final response", reason:"Closes the matter cleanly, states the escalation route, no new promises.", src:"Seed example", added:"Scott", fb:null }
+];
+
+const DOCUMENTS = [
+  { name:"Streets Ahead complaints procedure", type:"Procedure", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Acknowledgement template (rebuilt)", type:"Template", ver:"Jun 2026", signoff:"Approved", by:"Danny / Jun 2026" },
+  { name:"Request for information template", type:"Template", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Interim update template", type:"Template", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Final response (no fault) template", type:"Template", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Final response (resolution offered) template", type:"Template", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Closure template", type:"Template", ver:"Oct 2025", signoff:"Approved", by:"Danny / Oct 2025" },
+  { name:"Tenant Fees Act 2019, Sch 2", type:"Legislation", ver:"legislation.gov.uk", signoff:"Approved", by:"Danny / Jun 2026" },
+  { name:"TPO Code of Practice (Lettings), para 10(j)", type:"Legislation", ver:"Mar 2026", signoff:"Approved", by:"Danny / Jun 2026" },
+  { name:"Right to Rent guidance note", type:"Firm policy", ver:"Draft", signoff:"Draft", by:"Pending" }
+];
+
+const USERS = [
+  { name:"Danny", role:"Operations Director", can:"Approves every reply. Full access.", branch:"All branches" },
+  { name:"Scott", role:"Owner", can:"Second approver. Required for any compensation.", branch:"All branches" },
+  { name:"Priya", role:"Branch Manager", can:"Views and edits drafts for her branch. Cannot send.", branch:"Purley" },
+  { name:"Marcus", role:"Branch Manager", can:"Views and edits drafts for his branch. Cannot send.", branch:"South Croydon" },
+  { name:"Lettings team", role:"Negotiator", can:"Raises matters and adds investigation notes.", branch:"Various" }
+];
+
+const AUDIT = [
+  { t:"23 Jun, 09:14", actor:"System", action:"Logged", detail:"SA-COMP-2026-097524 created from inbound email. Severity Standard. Branch Purley." },
+  { t:"23 Jun, 09:14", actor:"System", action:"Acknowledged (auto-sent)", detail:"Acknowledgement template issued. Full response due 10 July 2026." },
+  { t:"23 Jun, 09:15", actor:"Agent", action:"Context gathered", detail:"Read: complaints procedure (Oct 2025), Tenant Fees Act 2019 Sch 2, TPO Code para 10(j)." },
+  { t:"23 Jun, 09:15", actor:"Agent", action:"Drafted", detail:"Grounded draft produced. 4 citations attached. 2 points marked could not be grounded." },
+  { t:"23 Jun, 09:15", actor:"Agent", action:"Submitted for approval", detail:"Routed to Danny. No compensation proposed." },
+  { t:"22 Jun, 16:41", actor:"Scott", action:"Approved", detail:"SA-COMP-2026-0305 compensation of £200 approved and sent." },
+  { t:"22 Jun, 12:02", actor:"Danny", action:"Edited", detail:"SA-COMP-2026-0302 returned for changes. Note: confirm the corrected statement figures." }
+];
+
+/* ===================== HELPERS ===================== */
+function fmtDate(iso){ return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+const SEVL = { serious:"Serious", standard:"Standard", trivial:"Trivial" };
+function approvalChip(a){
+  const cls = a==="Approved" ? "chip-ok" : (a==="Pending Scott"||a==="Changes requested") ? "chip-amber" : "chip-ghost";
+  return `<span class="chip ${cls}">${a}</span>`;
+}
+function statusChip(s){
+  const cls = (s==="Sent"||s==="Closed"||s==="Approved") ? "chip-ok" : (s==="Awaiting Scott"||s==="Changes requested") ? "chip-amber" : "chip-ghost";
+  return `<span class="chip ${cls}">${s}</span>`;
+}
+
+/* ===================== QUEUE ===================== */
+let queueFilter = "open";
+function openCount(){ return COMPLAINTS.filter(c=>!["Sent","Closed"].includes(c.status)).length; }
+function applyFilter(c){
+  switch(queueFilter){
+    case "open": return !["Sent","Closed"].includes(c.status);
+    case "awaiting": return c.approval==="Pending Danny";
+    case "scott": return c.status==="Awaiting Scott";
+    case "overdue": return c.overdue && !["Sent","Closed"].includes(c.status);
+    case "sent": return c.status==="Sent" || c.status==="Closed";
+    case "all": return true;
+  }
+  return true;
+}
+function renderQueue(){
+  const fb = document.getElementById('f-branch').value;
+  const fs = document.getElementById('f-sev').value;
+  const rows = COMPLAINTS.filter(applyFilter)
+    .filter(c=> !fb || c.branch===fb)
+    .filter(c=> !fs || SEVL[c.sev]===fs);
+  const el = document.getElementById('queue-list');
+  if(!rows.length){ el.innerHTML = `<div class="empty">No complaints match these filters.</div>`; }
+  else {
+    el.innerHTML = rows.map(r=>`
+      <div class="row" data-open="${r.ref}">
+        <div><span class="chip chip-${r.sev}">${SEVL[r.sev]}</span></div>
+        <div class="ref">${r.ref}</div>
+        <div><div class="who2">${r.who} <span style="color:var(--sa-ink-300)">· ${r.role}</span></div><div class="subj">${r.subj}</div></div>
+        <div class="branch"><small>Branch</small>${r.branch}</div>
+        <div class="due"><small>Respond by</small><span class="${r.overdue?'overdue':''}">${fmtDate(r.due)}${r.overdue?' · overdue':''}</span></div>
+      </div>`).join('');
+  }
+  const oc = openCount();
+  const od = COMPLAINTS.filter(c=>c.overdue && !["Sent","Closed"].includes(c.status)).length;
+  const sc = COMPLAINTS.filter(c=>c.status==="Awaiting Scott").length;
+  document.getElementById('queue-sub').textContent = `${oc} open · ${od} overdue · ${sc} awaiting Scott`;
+  document.getElementById('nav-open-count').textContent = oc;
+  document.getElementById('nav-queue-count').textContent = oc;
+}
+
+/* ===================== MATTER ===================== */
+function renderMatter(ref){
+  const c = COMPLAINTS.find(x=>x.ref===ref);
+  const d = DETAILS[ref] || buildGeneric(c);
+  const first = c.who==="Resident" ? "Resident" : (c.role==="Tenant"||c.role==="Landlord"?"":"") + c.who;
+  const compChecked = c.comp ? "checked" : "";
+  const draftHtml = d.draft.map(p=>`<p>${p}</p>`).join("");
+  const citesHtml = d.cites.map((ct,i)=>`
+    <div class="citecard">
+      <div><span class="n">${i+1}</span><span class="claim">${ct.claim}</span></div>
+      <span class="srcchip">${ct.src}</span>
+      <div class="quote">"${ct.quote}"</div>
+    </div>`).join("");
+  const gapsHtml = d.gaps.map(g=>`<div class="gap"><b>No basis on file:</b> ${g}</div>`).join("");
+  const sent = c.status==="Sent" || c.status==="Closed";
+
+  document.getElementById('view-matter').innerHTML = `
+    <div class="matter">
+      <div class="thread">
+        <div class="mhead">
+          <div class="crumbs"><a data-view="queue">Complaints queue</a> › ${c.ref}</div>
+          <h2>${c.subj}</h2>
+          <div class="metaline">
+            <span class="chip chip-${c.sev} chip-dot">${SEVL[c.sev]}</span><span>·</span>
+            <span>Complainant <b>${c.who}</b> (${c.role})</span><span>·</span>
+            <span>Branch <b>${c.branch}</b></span><span>·</span>
+            <span>Respond by <b class="${c.overdue?'overdue':''}">${fmtDate(c.due)}</b></span><span>·</span>
+            <span>Handler <b>Danny</b></span>
+          </div>
+        </div>
+        <div class="messages">
+          <p class="glabel">Conversation</p>
+          <div class="msg">
+            <div class="av av-in">${c.who.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase()}</div>
+            <div class="bubble"><div class="from"><b>${c.who}</b> <span class="tag tag-in">Inbound · email</span> <span class="t">${d.received}</span></div><p>${d.inbound}</p></div>
+          </div>
+          <div class="msg">
+            <div class="av av-sys">SA</div>
+            <div class="bubble"><div class="from"><b>Streets Ahead Complaints</b> <span class="tag tag-sys">Acknowledgement · auto-sent</span> <span class="t">${d.received}</span></div><p>${d.ack}</p></div>
+          </div>
+          <div class="msg">
+            <div class="av av-out">SA</div>
+            <div class="bubble out">
+              <div class="from"><b>Streets Ahead Complaints</b> <span class="tag tag-out">${sent?'Reply · sent':'Draft response'}</span> <span class="t">${sent?'sent':'<span class="pending chip-dot">Awaiting your approval</span>'}</span></div>
+              ${draftHtml}
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="panel">
+        <div class="ptab">
+          <button class="on" data-ptab="cites">Citations <span class="count" style="font-size:11px">${d.cites.length}</span></button>
+          <button data-ptab="review">Review</button>
+        </div>
+        <div class="psec on" id="psec-cites">
+          <p class="glabel">Grounded in the approved library</p>
+          ${citesHtml}
+          ${gapsHtml ? `<p class="glabel" style="margin-top:24px">Could not be grounded, to confirm from file</p>${gapsHtml}` : ''}
+        </div>
+        <div class="psec" id="psec-review">
+          <div class="field"><label>Investigation notes (internal, not sent)</label><textarea rows="3" placeholder="What you checked, colleague input, what is outstanding"></textarea></div>
+          <div class="field">
+            <label>Compensation</label>
+            <div class="toggle"><input type="checkbox" id="comp" ${compChecked} /><div><div class="lab">Compensation proposed</div><div class="note">Goodwill or money offered in this reply</div></div></div>
+            <div class="scott ${c.comp?'show':''}" id="scott">This reply offers compensation. It cannot send on Danny's approval alone. It routes to Scott for a second approval.</div>
+          </div>
+          <div class="field"><label>Approval state</label>
+            <div class="toggle" style="background:var(--sa-paper)">${approvalChip(c.approval)}<span class="note">Only the acknowledgement auto-sends. Every reply is human-approved.</span></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary">${c.comp?'Approve, route to Scott':'Approve &amp; send'}</button>
+          <button class="btn btn-ghost">Request changes</button>
+          <button class="btn btn-ghost">Reject</button>
+        </div>
+      </aside>
+    </div>`;
+
+  // panel tabs
+  document.querySelectorAll('#view-matter [data-ptab]').forEach(b=> b.addEventListener('click', ()=>{
+    document.querySelectorAll('#view-matter [data-ptab]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('#view-matter .psec').forEach(s=>s.classList.remove('on'));
+    document.getElementById('psec-'+b.dataset.ptab).classList.add('on');
+  }));
+  const comp = document.getElementById('comp');
+  if(comp) comp.addEventListener('change', e=> document.getElementById('scott').classList.toggle('show', e.target.checked));
+}
+
+/* ===================== REPORTING ===================== */
+function renderReporting(){
+  const total = COMPLAINTS.length;
+  const open = openCount();
+  const closed = COMPLAINTS.filter(c=>["Sent","Closed"].includes(c.status)).length;
+  const overdue = COMPLAINTS.filter(c=>c.overdue && !["Sent","Closed"].includes(c.status)).length;
+  const openPct = Math.round(open/total*100);
+  const byBranch = BRANCHES.map(b=>({b, n:COMPLAINTS.filter(c=>c.branch===b).length})).filter(x=>x.n).sort((a,b)=>b.n-a.n);
+  const maxB = Math.max(...byBranch.map(x=>x.n));
+  const sevs = ["serious","standard","trivial"];
+  const bySev = sevs.map(s=>({s:SEVL[s], n:COMPLAINTS.filter(c=>c.sev===s).length}));
+  const maxS = Math.max(...bySev.map(x=>x.n));
+  document.getElementById('view-reporting').innerHTML = `
+    <div class="pagehead"><h1>Reporting</h1><span class="sub">Last 90 days</span></div>
+    <div class="cards">
+      <div class="metric"><div class="k">Open</div><div class="v">${open}</div><div class="d">of ${total} matters</div></div>
+      <div class="metric warn"><div class="k">Overdue</div><div class="v">${overdue}</div><div class="d">past response date</div></div>
+      <div class="metric"><div class="k">Avg. days to resolve</div><div class="v">9</div><div class="d">received to sent</div></div>
+      <div class="metric"><div class="k">Auto-acknowledged</div><div class="v">100%</div><div class="d">within 3 working days</div></div>
+    </div>
+    <div class="charts">
+      <div class="chart">
+        <h4>Open vs closed</h4>
+        <div class="donutwrap">
+          <div class="donut" style="background:conic-gradient(var(--sa-green-brand) 0 ${openPct}%, var(--sa-green-200) ${openPct}% 100%)"><div class="hole"><b>${open}</b><span>open now</span></div></div>
+          <div class="legend">
+            <div><span class="sw" style="background:var(--sa-green-brand)"></span> Open · ${open}</div>
+            <div><span class="sw" style="background:var(--sa-green-200)"></span> Sent or closed · ${closed}</div>
+            <div style="color:var(--sa-ink-500);font-size:12px;margin-top:8px">Compensation matters routed to Scott: ${COMPLAINTS.filter(c=>c.comp).length}</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart">
+        <h4>By severity</h4>
+        ${bySev.map(x=>`<div class="bar"><span>${x.s}</span><span class="track"><span class="fillbar ${x.s==='Serious'?'red':x.s==='Standard'?'':'amber'}" style="width:${Math.round(x.n/maxS*100)}%"></span></span><span class="num">${x.n}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="charts">
+      <div class="chart">
+        <h4>By branch</h4>
+        ${byBranch.map(x=>`<div class="bar"><span>${x.b}</span><span class="track"><span class="fillbar" style="width:${Math.round(x.n/maxB*100)}%"></span></span><span class="num">${x.n}</span></div>`).join('')}
+      </div>
+      <div class="chart">
+        <h4>By status</h4>
+        ${["Awaiting Danny","Awaiting Scott","Approved","Sent","Closed","Changes requested"].map(s=>{const n=COMPLAINTS.filter(c=>c.status===s).length; const mx=Math.max(...["Awaiting Danny","Awaiting Scott","Approved","Sent","Closed","Changes requested"].map(z=>COMPLAINTS.filter(c=>c.status===z).length));return `<div class="bar"><span>${s}</span><span class="track"><span class="fillbar ${s==='Awaiting Scott'||s==='Changes requested'?'amber':''}" style="width:${mx?Math.round(n/mx*100):0}%"></span></span><span class="num">${n}</span></div>`}).join('')}
+      </div>
+    </div>`;
+}
+
+/* ===================== RULES ===================== */
+function renderRules(){
+  document.getElementById('view-rules').innerHTML = `
+    <div class="pagehead"><h1>Rules &amp; tone</h1><span class="sub">Plain-English rules you can edit. No technical training needed.</span></div>
+    <div class="pad stack">
+      <div class="card">
+        <p class="glabel">Tone rules for the Complaint matter type</p>
+        <div class="field"><label>Never do</label><textarea rows="3">Do not apologise, admit fault, promise, or agree before the matter is investigated.</textarea></div>
+        <div class="field"><label>Always do</label><textarea rows="3">Acknowledge without agreeing or disagreeing. Mirror the points back. State the response time. Name the handler. Keep the right to refer to The Property Ombudsman open.</textarea></div>
+        <div class="field"><label>Sign-off</label><input type="text" value="For and on behalf of Streets Ahead Complaints" /></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><p class="glabel">Redress scheme</p><div class="field"><input type="text" value="The Property Ombudsman (TPO)" /></div><p class="sa-meta">Always The Property Ombudsman. Never another scheme.</p></div>
+        <div class="card"><p class="glabel">Compensation</p><div class="toggle"><input type="checkbox" checked><div><div class="lab">Any compensation needs a second approver</div><div class="note">Routes to Scott before it can send.</div></div></div></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary">Save rules</button><button class="btn btn-ghost">Undo last change</button></div>
+      <p class="sa-meta">Changes are versioned. Every edit can be undone with one click.</p>
+    </div>`;
+}
+
+/* ===================== EXAMPLES ===================== */
+function renderExamples(){
+  document.getElementById('view-examples').innerHTML = `
+    <div class="pagehead"><h1>Examples</h1><span class="sub">Saved good replies that steer the writing. Tick "save as example" on any reply you like.</span></div>
+    <div class="pad stack">
+      ${EXAMPLES.map((e,i)=>`
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="chip chip-standard">Complaint</span>
+            <b style="font-size:16px">${e.title}</b>
+            <span class="grow"></span>
+            <div class="thumbs" data-ex="${i}">
+              <button class="up ${e.fb==='up'?'on':''}" data-fb="up">Good</button>
+              <button class="down ${e.fb==='down'?'on':''}" data-fb="down">Needs work</button>
+            </div>
+          </div>
+          <p style="margin:12px 0 0;color:var(--sa-ink-700)">${e.reason}</p>
+          <p class="sa-meta" style="margin-top:8px">Saved from ${e.src} · added by ${e.added} · Approved</p>
+        </div>`).join('')}
+    </div>`;
+  document.querySelectorAll('#view-examples .thumbs').forEach(t=>{
+    t.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{
+      const on = b.classList.contains('on');
+      t.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      if(!on) b.classList.add('on');
+    }));
+  });
+}
+
+/* ===================== DOCUMENT LIBRARY ===================== */
+function renderLibrary(){
+  document.getElementById('view-library').innerHTML = `
+    <div class="pagehead"><h1>Document library</h1><span class="sub">The approved sources the agent is allowed to quote. Nothing else is used.</span><span class="grow"></span><button class="btn btn-primary">Add document</button></div>
+    <div class="pad">
+      <table class="tbl"><thead><tr><th>Name</th><th>Type</th><th>Version</th><th>Sign-off</th><th>Approved by</th></tr></thead><tbody>
+      ${DOCUMENTS.map(d=>`<tr><td class="mono">${d.name}</td><td class="muted">${d.type}</td><td class="muted">${d.ver}</td><td>${d.signoff==='Approved'?'<span class="chip chip-ok">Approved</span>':'<span class="chip chip-amber">Draft</span>'}</td><td class="muted">${d.by}</td></tr>`).join('')}
+      </tbody></table>
+      <p class="sa-meta" style="margin-top:16px">Only documents marked Approved can ground a live reply. Draft documents are never quoted.</p>
+    </div>`;
+}
+
+/* ===================== MATTER TYPES ===================== */
+function renderMatterTypes(){
+  document.getElementById('view-mattertypes').innerHTML = `
+    <div class="pagehead"><h1>Matter types</h1><span class="sub">The platform is modular by matter type. Add new types by configuration, not a rebuild.</span><span class="grow"></span><button class="btn btn-primary">Add matter type</button></div>
+    <div class="pad stack">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px"><b style="font-size:18px">Complaint</b><span class="chip chip-ok">Active</span><span class="grow"></span><span class="sa-meta">Default. Never blank.</span></div>
+        <div class="grid2" style="margin-top:16px">
+          <div class="field"><label>Acknowledge within (working days)</label><input type="text" value="3" /></div>
+          <div class="field"><label>Full response within (working days)</label><input type="text" value="14" /></div>
+          <div class="field"><label>Redress scheme</label><input type="text" value="The Property Ombudsman (TPO)" /></div>
+          <div class="field"><label>Second approver for compensation</label><input type="text" value="Scott" /></div>
+        </div>
+        <div class="field"><label>Auto-acknowledge</label><div class="toggle"><input type="checkbox" checked><div class="lab">On</div></div></div>
+      </div>
+      <div class="card" style="opacity:.7">
+        <div style="display:flex;align-items:center;gap:12px"><b style="font-size:18px">Compliment</b><span class="chip chip-ghost">Not yet enabled</span></div>
+        <p class="sa-meta" style="margin-top:8px">Add later by configuration. Its own tone, clock and routing switch off this field.</p>
+      </div>
+      <div class="card" style="opacity:.7">
+        <div style="display:flex;align-items:center;gap:12px"><b style="font-size:18px">General enquiry</b><span class="chip chip-ghost">Not yet enabled</span></div>
+        <p class="sa-meta" style="margin-top:8px">Add later by configuration.</p>
+      </div>
+    </div>`;
+}
+
+/* ===================== USERS ===================== */
+function renderUsers(){
+  document.getElementById('view-users').innerHTML = `
+    <div class="pagehead"><h1>Users &amp; roles</h1><span class="sub">Who can see and do what.</span><span class="grow"></span><button class="btn btn-primary">Invite user</button></div>
+    <div class="pad">
+      <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>Permissions</th><th>Branch</th></tr></thead><tbody>
+      ${USERS.map(u=>`<tr><td class="mono">${u.name}</td><td class="muted">${u.role}</td><td>${u.can}</td><td class="muted">${u.branch}</td></tr>`).join('')}
+      </tbody></table>
+      <p class="sa-meta" style="margin-top:16px">Only Danny and Scott can send. Compensation always needs Scott's second approval.</p>
+    </div>`;
+}
+
+/* ===================== AUDIT ===================== */
+function renderAudit(){
+  document.getElementById('view-audit').innerHTML = `
+    <div class="pagehead"><h1>Audit log</h1><span class="sub">A complete, append-only record of what was read, cited, drafted, and who approved it.</span></div>
+    <div class="pad">
+      <table class="tbl"><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+      ${AUDIT.map(a=>`<tr><td class="muted" style="white-space:nowrap">${a.t}</td><td class="mono">${a.actor}</td><td><span class="chip chip-ghost">${a.action}</span></td><td>${a.detail}</td></tr>`).join('')}
+      </tbody></table>
+      <p class="sa-meta" style="margin-top:16px">Records are kept for 6 years, then deleted automatically.</p>
+    </div>`;
+}
+
+/* ===================== SETTINGS ===================== */
+function renderSettings(){
+  document.getElementById('view-settings').innerHTML = `
+    <div class="pagehead"><h1>Settings</h1><span class="sub">Account and desk settings.</span></div>
+    <div class="pad stack">
+      <div class="grid2">
+        <div class="card"><p class="glabel">Response clock</p>
+          <div class="field"><label>Acknowledge within (working days)</label><input type="text" value="3" /></div>
+          <div class="field"><label>Full response within (working days)</label><input type="text" value="14" /></div>
+          <p class="sa-meta">The committed reply date is shown to the customer, not a count.</p>
+        </div>
+        <div class="card"><p class="glabel">Signature</p>
+          <div class="field"><label>Reply sign-off</label><input type="text" value="For and on behalf of Streets Ahead Complaints" /></div>
+          <div class="field"><label>Default handler</label><input type="text" value="Danny" /></div>
+        </div>
+      </div>
+      <div class="card"><p class="glabel">Branches</p>
+        <p style="color:var(--sa-ink-700)">${BRANCHES.join(", ")}.</p>
+        <button class="btn btn-ghost" style="margin-top:8px">Manage branches</button>
+      </div>
+      <div class="card"><p class="glabel">Retention</p>
+        <div class="field"><label>Keep complaint records for</label><input type="text" value="6 years" /></div>
+        <p class="sa-meta">Records are deleted automatically once retention expires.</p>
+      </div>
+    </div>`;
+}
+
+/* ===================== COMING SOON MODULE ===================== */
+const MODULE_COPY = {
+  operations: { name:"Operations", line:"Branch performance, instructions, viewings and pipeline in one operational view. The day-to-day running of every office, side by side.", k:["Pipeline","Viewings","Branch KPIs"] },
+  compliance: { name:"Compliance", line:"Anti-money-laundering checks, right to rent, deposit protection and document expiry tracked automatically, with the same grounded, audited approach as complaints.", k:["AML checks","Right to Rent","Deposit protection"] },
+  people: { name:"People", line:"Your team in one place: roles, training, holidays and the approvals each person can give. The permissions that drive every other module live here.", k:["Roles","Training","Approvals"] },
+  fleet: { name:"Fleet Management", line:"Branch vehicles, insurance, servicing and mileage tracked so nothing lapses and every cost is visible.", k:["Vehicles","Servicing","Insurance"] },
+  bi: { name:"Business Intelligence", line:"Every module's numbers rolled up into clear reporting and trends, so the owners can see the whole business at a glance.", k:["Trends","Forecasts","Board view"] }
+};
+function renderModule(mod){
+  const m = MODULE_COPY[mod];
+  document.getElementById('view-module').innerHTML = `
+    <div class="soonview">
+      <span class="badge">Coming soon</span>
+      <h1>${m.name}</h1>
+      <p>${m.line}</p>
+      <p class="sa-meta" style="margin-top:16px">Part of the SA\\OS roadmap. Complaints is live today. The rest of the platform is added module by module, on the same foundations.</p>
+      <div class="preview">
+        ${m.k.map(k=>`<div class="ph"><div class="pk">${k}</div><div class="pl m"></div><div class="pl s"></div><div class="pl m"></div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+/* ===================== ROUTER ===================== */
+const VIEW_TITLES = { queue:"Queue", matter:"Review & approve", reporting:"Reporting", rules:"Rules & tone", examples:"Examples", library:"Document library", mattertypes:"Matter types", users:"Users & roles", audit:"Audit log", settings:"Settings" };
+const RENDERERS = { reporting:renderReporting, rules:renderRules, examples:renderExamples, library:renderLibrary, mattertypes:renderMatterTypes, users:renderUsers, audit:renderAudit, settings:renderSettings };
+
+function setView(view){
+  if(RENDERERS[view]) RENDERERS[view]();
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  // nav highlight (within complaints sub-nav)
+  document.querySelectorAll('#complaints-nav a').forEach(a=>a.classList.toggle('active', a.dataset.view===view));
+  // module highlight: complaints active
+  document.querySelectorAll('.nav a.module').forEach(a=>a.classList.toggle('active', a.dataset.module==='complaints'));
+  document.getElementById('mod-eyebrow').textContent = "Module";
+  document.getElementById('mod-title').textContent = "Complaints";
+  document.getElementById('complaints-nav').style.display = "";
+  document.getElementById('main').scrollTop = 0;
+  closeDrawer();
+}
+function setModule(mod){
+  if(mod==='complaints'){ setView('queue'); return; }
+  renderModule(mod);
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-module').classList.add('active');
+  document.querySelectorAll('.nav a.module').forEach(a=>a.classList.toggle('active', a.dataset.module===mod));
+  document.querySelectorAll('#complaints-nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('complaints-nav').style.display = "none";
+  document.getElementById('mod-eyebrow').textContent = "Platform module";
+  document.getElementById('mod-title').textContent = MODULE_COPY[mod].name;
+  document.getElementById('main').scrollTop = 0;
+  closeDrawer();
+}
+function openMatter(ref){
+  renderMatter(ref);
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-matter').classList.add('active');
+  document.getElementById('mod-title').textContent = "Complaints";
+  document.getElementById('main').scrollTop = 0;
+  closeDrawer();
+}
+
+/* drawer */
+function closeDrawer(){ document.getElementById('nav').classList.remove('open'); document.body.classList.remove('drawer'); }
+
+/* ===================== WIRING ===================== */
+document.getElementById('signin').addEventListener('click', ()=>{
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+});
+
+// branch filter options
+const fb = document.getElementById('f-branch');
+BRANCHES.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; fb.appendChild(o); });
+
+// module clicks
+document.querySelectorAll('.nav a.module').forEach(a=> a.addEventListener('click', ()=> setModule(a.dataset.module)));
+// complaints sub-nav clicks
+document.querySelectorAll('#complaints-nav a').forEach(a=> a.addEventListener('click', ()=> setView(a.dataset.view)));
+// crumbs / data-view inside dynamic content
+document.addEventListener('click', e=>{
+  const v = e.target.closest('[data-view]');
+  if(v && v.closest('#view-matter')){ setView(v.dataset.view); return; }
+  const row = e.target.closest('[data-open]');
+  if(row){ openMatter(row.dataset.open); }
+});
+// queue filters
+document.querySelectorAll('#queue-toolbar [data-filter]').forEach(b=> b.addEventListener('click', ()=>{
+  document.querySelectorAll('#queue-toolbar [data-filter]').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); queueFilter=b.dataset.filter; renderQueue();
+}));
+document.getElementById('f-branch').addEventListener('change', renderQueue);
+document.getElementById('f-sev').addEventListener('change', renderQueue);
+
+// drawer toggle
+document.getElementById('burger').addEventListener('click', ()=>{
+  const n=document.getElementById('nav'); n.classList.toggle('open'); document.body.classList.toggle('drawer', n.classList.contains('open'));
+});
+document.getElementById('scrim').addEventListener('click', closeDrawer);
+
+// initial
+renderQueue();
+</script>
+</body>
+</html>
