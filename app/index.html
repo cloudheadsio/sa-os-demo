@@ -332,6 +332,7 @@
       <a class="module" data-module="people"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M2 21v-1a6 6 0 0 1 12 0v1"/><path d="M16 3.5a3 3 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6"/></svg>People</span><span class="soon">Soon</span></a>
       <a class="module" data-module="fleet"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13l2-5h11l3 5"/><path d="M2 13h19v4H2z"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>Fleet Management</span><span class="soon">Soon</span></a>
       <a class="module" data-module="bi"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Business Intelligence</span><span class="soon">Soon</span></a>
+      <a class="module" data-module="reports"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>Reports</span><span class="soon">Soon</span></a>
 
       <div id="complaints-nav">
         <div class="grp">Complaints desk</div>
@@ -880,7 +881,8 @@ const MODULE_COPY = {
   compliance: { name:"Compliance", line:"Anti-money-laundering checks, right to rent, deposit protection and document expiry tracked automatically, with the same grounded, audited approach as complaints.", k:["AML checks","Right to Rent","Deposit protection"] },
   people: { name:"People", line:"Your team in one place: roles, training, holidays and the approvals each person can give. The permissions that drive every other module live here.", k:["Roles","Training","Approvals"] },
   fleet: { name:"Fleet Management", line:"Branch vehicles, insurance, servicing and mileage tracked so nothing lapses and every cost is visible.", k:["Vehicles","Servicing","Insurance"] },
-  bi: { name:"Business Intelligence", line:"Every module's numbers rolled up into clear reporting and trends, so the owners can see the whole business at a glance.", k:["Trends","Forecasts","Board view"] }
+  bi: { name:"Business Intelligence", line:"Every module's numbers rolled up into clear reporting and trends, so the owners can see the whole business at a glance.", k:["Trends","Forecasts","Board view"] },
+  reports: { name:"Reports", line:"Scheduled and on-demand reports across every module, ready to export or send. Build a report once and have it land in your inbox on any schedule.", k:["Saved reports","Scheduled exports","Shareable"] }
 };
 function renderModule(mod){
   const m = MODULE_COPY[mod];
