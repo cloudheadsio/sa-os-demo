@@ -328,6 +328,7 @@
       <div class="grp">Platform</div>
       <a class="module" data-module="operations"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Operations</span><span class="soon">Soon</span></a>
       <a class="module active" data-module="complaints" data-view="queue"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Complaints</span><span class="count" id="nav-open-count">7</span></a>
+      <a class="module" data-module="maintenance"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.7L3 17.7V21h3.3l5.7-5.7a4.5 4.5 0 0 0 5.7-6L14 13l-3-3z"/></svg>Maintenance</span><span class="count" id="nav-mnt-count">8</span></a>
       <a class="module" data-module="compliance"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Compliance</span><span class="soon">Soon</span></a>
       <a class="module" data-module="people"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M2 21v-1a6 6 0 0 1 12 0v1"/><path d="M16 3.5a3 3 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6"/></svg>People</span><span class="soon">Soon</span></a>
       <a class="module" data-module="fleet"><span class="lead"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13l2-5h11l3 5"/><path d="M2 13h19v4H2z"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>Fleet Management</span><span class="soon">Soon</span></a>
@@ -346,6 +347,14 @@
         <a data-view="users"><span class="lead">Users &amp; roles</span></a>
         <a data-view="audit"><span class="lead">Audit log</span></a>
         <a data-view="settings"><span class="lead">Settings</span></a>
+      </div>
+
+      <div id="maintenance-nav" style="display:none">
+        <div class="grp">Maintenance desk</div>
+        <a data-mview="mqueue" class="active"><span class="lead">Job queue</span><span class="count" id="nav-mqueue-count">8</span></a>
+        <a style="color:var(--sa-ink-500);cursor:default"><span class="lead">Morning summary</span><span class="soon">Soon</span></a>
+        <a style="color:var(--sa-ink-500);cursor:default"><span class="lead">Reporting</span><span class="soon">Soon</span></a>
+        <a style="color:var(--sa-ink-500);cursor:default"><span class="lead">Triage rules</span><span class="soon">Soon</span></a>
       </div>
       <div class="scrim" id="scrim"></div>
     </nav>
@@ -398,6 +407,27 @@
 
       <!-- SETTINGS -->
       <section class="view" id="view-settings"></section>
+
+      <!-- MAINTENANCE JOB QUEUE -->
+      <section class="view" id="view-mqueue">
+        <div class="pagehead">
+          <h1>Job queue</h1>
+          <span class="sub" id="mqueue-sub"></span>
+        </div>
+        <div class="toolbar" id="mqueue-toolbar">
+          <button class="pill on" data-mfilter="open">Open</button>
+          <button class="pill" data-mfilter="emergency">Emergency</button>
+          <button class="pill" data-mfilter="team">Awaiting maintenance team</button>
+          <button class="pill" data-mfilter="landlord">Landlord notified</button>
+          <button class="pill" data-mfilter="closed">Closed</button>
+          <button class="pill" data-mfilter="all">All</button>
+          <span class="pill"><select id="mf-branch"><option value="">All branches</option></select></span>
+        </div>
+        <div class="list" id="mqueue-list"></div>
+      </section>
+
+      <!-- MAINTENANCE JOB DETAIL -->
+      <section class="view" id="view-job"></section>
 
       <!-- COMING SOON MODULE -->
       <section class="view" id="view-module"></section>
@@ -546,6 +576,126 @@ const AUDIT = [
   { t:"22 Jun, 16:41", actor:"Scott", action:"Approved", detail:"SA-COMP-2026-0305 compensation of £200 approved and sent." },
   { t:"22 Jun, 12:02", actor:"Danny", action:"Edited", detail:"SA-COMP-2026-0302 returned for changes. Note: confirm the corrected statement figures." }
 ];
+
+/* ===================== MAINTENANCE DATA ===================== */
+/* Out-of-hours reports from last night. cls = how the triage classified it. */
+const JOBS = [
+  { ref:"SA-MNT-2026-0148", cls:"emergency", who:"T. Osei", prop:"22 Morland Road", branch:"Addiscombe (HQ)", issue:"Smell of gas in the hallway", status:"On-call alerted", t:"2 Jul, 23:52", phone:"07700 900314" },
+  { ref:"SA-MNT-2026-0147", cls:"emergency", who:"L. Njie", prop:"8 Whytecliffe Road", branch:"Purley", issue:"Front door will not secure after a break-in", status:"On-call alerted", t:"2 Jul, 23:17", phone:"07700 900552" },
+  { ref:"SA-MNT-2026-0146", cls:"emergency", who:"S. Carter", prop:"14 Sanderstead Road", branch:"South Croydon", issue:"No heating or hot water, baby in the property", status:"On-call alerted", t:"2 Jul, 21:48", phone:"07700 900187" },
+  { ref:"SA-MNT-2026-0145", cls:"signpost", who:"M. Adebayo", prop:"31 Bensham Lane", branch:"Thornton Heath", issue:"Power cut affecting the whole street", status:"Signposted", t:"2 Jul, 21:05", phone:"07700 900623" },
+  { ref:"SA-MNT-2026-0144", cls:"routine", who:"P. Kaur", prop:"55 Auckland Road", branch:"Crystal Palace", issue:"Washing machine not draining", status:"Landlord notified", t:"2 Jul, 20:33", phone:"07700 900278" },
+  { ref:"SA-MNT-2026-0143", cls:"routine", who:"J. Mburu", prop:"2 Limes Road", branch:"Central Croydon", issue:"Bathroom tap dripping constantly", status:"Awaiting maintenance team", t:"2 Jul, 19:58", phone:"07700 900409" },
+  { ref:"SA-MNT-2026-0142", cls:"routine", who:"R. Fofana", prop:"17 Portland Road", branch:"South Norwood", issue:"Mould spreading on the bedroom wall", status:"Awaiting maintenance team", t:"2 Jul, 19:24", phone:"07700 900731" },
+  { ref:"SA-MNT-2026-0141", cls:"routine", who:"A. Novak", prop:"40 Chipstead Valley Road", branch:"Coulsdon", issue:"Blocked kitchen sink", status:"Landlord notified", t:"2 Jul, 18:47", phone:"07700 900066" },
+  { ref:"SA-MNT-2026-0140", cls:"signpost", who:"K. Danso", prop:"25 Brighton Road", branch:"Purley", issue:"Water bubbling up from the pavement outside", status:"Signposted", t:"2 Jul, 18:22", phone:"07700 900845" },
+  { ref:"SA-MNT-2026-0139", cls:"routine", who:"H. Silva", prop:"3 Davidson Road", branch:"Addiscombe (HQ)", issue:"Fence panel blown down in the back garden", status:"Landlord notified", t:"2 Jul, 18:06", phone:"07700 900198" },
+  { ref:"SA-MNT-2026-0138", cls:"emergency", who:"N. Hughes", prop:"12 Kynaston Road", branch:"Thornton Heath", issue:"Severe leak under the kitchen sink, could not be shut off", status:"Resolved", t:"1 Jul, 23:05", phone:"07700 900377" }
+];
+
+/* Hand-authored job detail. Others fall back to a generic builder. */
+const JOBDETAILS = {
+  "SA-MNT-2026-0148": {
+    report:"There is a strong smell of gas in the hallway near the meter cupboard. It started about half an hour ago and it is getting worse. My partner and two children are home with me.",
+    reply:"This is an emergency. Please leave the property now with everyone in the household. Do not touch light switches or plug sockets and do not use naked flames. Call the National Gas Emergency Service now on 0800 111 999. Our on-call engineer has been alerted and the office will follow up first thing tomorrow. Your reference is SA-MNT-2026-0148.",
+    alert:"EMERGENCY SA-MNT-2026-0148. Smell of gas at 22 Morland Road, Addiscombe. Tenant T. Osei, 07700 900314. Household evacuating, told to call the National Gas Emergency Service on 0800 111 999. Logged 23:52.",
+    rules:[
+      { claim:"A smell of gas is always an emergency.", src:"Out-of-hours triage rules · Gas", quote:"Leave the property, do not touch electrical switches, no naked flames, call the National Gas Emergency Service on 0800 111 999." },
+      { claim:"The on-call engineer is alerted at once.", src:"Out-of-hours triage rules · Escalation", quote:"Immediate emergencies alert the on-call person as well as signposting the tenant to the emergency service." }
+    ],
+    trail:[
+      { t:"23:50", actor:"System", action:"Report received", detail:"Out-of-hours chat opened on the Streets Ahead website." },
+      { t:"23:50", actor:"System", action:"Tenant verified", detail:"22 Morland Road matched against the managed property list." },
+      { t:"23:51", actor:"Assistant", action:"Safety checks run", detail:"Gas indicators found on the first question. Emergency path taken before anything else." },
+      { t:"23:51", actor:"Assistant", action:"Classified as emergency", detail:"Rule: Gas. Safety steps shown to the tenant in the chat." },
+      { t:"23:52", actor:"System", action:"On-call alerted", detail:"Text message sent to the on-call engineer (simulated)." }
+    ]
+  },
+  "SA-MNT-2026-0146": {
+    report:"Our boiler has stopped working completely, no heating and no hot water. We have a five month old baby. This is the third time since we moved in.",
+    reply:"Because there is a baby in the property, this is treated as an emergency and our on-call engineer has been alerted. In the meantime please do not use portable gas heaters. Your reference is SA-MNT-2026-0146 and the office will call you first thing tomorrow.",
+    alert:"EMERGENCY SA-MNT-2026-0146. Boiler failure, no heating or hot water at 14 Sanderstead Road, South Croydon. Baby in the property. Tenant S. Carter, 07700 900187. Third failure at this property since May. Logged 21:48.",
+    vuln:"Vulnerable occupant reported: baby in the property.",
+    repeat:"Repeat issue: third boiler failure at this property since May 2026.",
+    prov:"Provisional rule, awaiting client sign-off. Open questions: does the emergency need both heating and hot water to be lost, or either? Does deep winter change the answer?",
+    rules:[
+      { claim:"Loss of heating and hot water with a vulnerable occupant or child present: attend, any day.", src:"Triage rules · Heating and hot water (provisional)", quote:"Vulnerable occupant or child present: attend, any day. No vulnerable occupant: Friday and Saturday attend, Sunday hold to Monday." }
+    ],
+    trail:[
+      { t:"21:45", actor:"System", action:"Report received", detail:"Out-of-hours chat opened on the Streets Ahead website." },
+      { t:"21:45", actor:"System", action:"Tenant verified", detail:"14 Sanderstead Road matched against the managed property list." },
+      { t:"21:46", actor:"Assistant", action:"Safety checks run", detail:"No gas, carbon monoxide, fire, flood or security indicators." },
+      { t:"21:47", actor:"Assistant", action:"Vulnerability check", detail:"Tenant confirmed a baby in the property." },
+      { t:"21:47", actor:"Assistant", action:"Classified as emergency", detail:"Rule: Heating and hot water (provisional), vulnerable occupant present." },
+      { t:"21:48", actor:"System", action:"On-call alerted", detail:"Text message sent to the on-call engineer (simulated)." },
+      { t:"21:48", actor:"System", action:"Repeat issue flagged", detail:"Third boiler failure at this property since May 2026." }
+    ]
+  },
+  "SA-MNT-2026-0141": {
+    report:"The kitchen sink is completely blocked and water will not drain away at all. We have tried unblocking liquid. There is no leak, it is just not draining.",
+    reply:"Thank you. This does not need an emergency call-out tonight. It is logged as SA-MNT-2026-0141 and the maintenance team will pick it up on the next working morning and be in touch to arrange access. Please do not pour anything else down the sink overnight.",
+    email:{ to:"Landlord, 40 Chipstead Valley Road", subject:"Maintenance report at your property, ref SA-MNT-2026-0141", text:"A blocked kitchen sink was reported by the tenant this evening. It has been assessed as routine, so no emergency call-out was needed. The maintenance team will arrange a contractor on the next working day and we will confirm the cost with you before any work is instructed." },
+    rules:[
+      { claim:"Blocked sinks are routine repairs, logged for the morning team.", src:"Out-of-hours triage rules · Routine repairs", quote:"Dripping taps, minor plumbing leaks, blocked sinks, faulty appliances, fencing and general repairs wait for the next working day." },
+      { claim:"The landlord is notified by email for routine repairs.", src:"Out-of-hours triage rules · Landlord contact", quote:"Non-emergency reports notify the landlord by email the same evening, with costs confirmed before work is instructed." }
+    ],
+    trail:[
+      { t:"18:44", actor:"System", action:"Report received", detail:"Out-of-hours chat opened on the Streets Ahead website." },
+      { t:"18:44", actor:"System", action:"Tenant verified", detail:"40 Chipstead Valley Road matched against the managed property list." },
+      { t:"18:45", actor:"Assistant", action:"Safety checks run", detail:"No gas, carbon monoxide, fire, flood or security indicators." },
+      { t:"18:46", actor:"Assistant", action:"Classified as routine", detail:"Rule: Routine repairs. Logged for the morning summary." },
+      { t:"18:47", actor:"System", action:"Landlord notified", detail:"Summary email sent to the landlord (simulated)." }
+    ]
+  }
+};
+
+/* Generic builder for jobs without authored detail */
+function buildGenericJob(j){
+  const base = {
+    report:"I would like to report a problem at the property: "+j.issue.toLowerCase()+". It started this evening.",
+    trail:[
+      { t:j.t.split(", ")[1], actor:"System", action:"Report received", detail:"Out-of-hours chat opened on the Streets Ahead website." },
+      { t:j.t.split(", ")[1], actor:"System", action:"Tenant verified", detail:j.prop+" matched against the managed property list." }
+    ]
+  };
+  if(j.cls==="emergency"){
+    base.reply = "This is treated as an emergency. Our on-call engineer has been alerted and will contact you shortly. Your reference is "+j.ref+".";
+    base.alert = "EMERGENCY "+j.ref+". "+j.issue+" at "+j.prop+", "+j.branch+". Tenant "+j.who+", "+j.phone+". Logged "+j.t.split(", ")[1]+".";
+    base.rules = [
+      { claim:"This report met an emergency trigger.", src:"Out-of-hours triage rules · Emergencies", quote:"Genuine emergencies are attended out of hours: severe leaks that cannot be shut off, a property left insecure after a break-in, dangerous electrical faults, total loss of power to one property." }
+    ];
+    base.trail.push(
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Safety checks run", detail:"Emergency indicators found. Emergency path taken before anything else." },
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Classified as emergency", detail:"Safety steps shown to the tenant in the chat." },
+      { t:j.t.split(", ")[1], actor:"System", action:"On-call alerted", detail:"Text message sent to the on-call engineer (simulated)." }
+    );
+    if(j.status==="Resolved") base.trail.push({ t:"07:40", actor:"On-call", action:"Resolved", detail:"On-call engineer attended and made safe. Follow-up work logged for the maintenance team." });
+  } else if(j.cls==="signpost"){
+    const svc = /power/i.test(j.issue) ? "105, the local electricity network operator" : "Thames Water";
+    base.reply = "This is not something Streets Ahead can fix, but the right people can. Please call "+svc+". Your report is logged as "+j.ref+" so the office knows about it in the morning.";
+    base.rules = [
+      { claim:"Not a Streets Ahead job, signposted to the right service.", src:"Out-of-hours triage rules · Signposting", quote:"Water leaks in the street or mains: Thames Water. A wider power cut in the area: 105. Fire or danger to life: 999." }
+    ];
+    base.trail.push(
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Safety checks run", detail:"No emergency at the property itself." },
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Signposted", detail:"Tenant directed to "+svc+". No attendance needed." }
+    );
+  } else {
+    base.reply = "Thank you. This does not need an emergency call-out tonight. It is logged as "+j.ref+" and the maintenance team will pick it up on the next working morning and be in touch to arrange access.";
+    base.rules = [
+      { claim:"Not an emergency, logged for the morning team.", src:"Out-of-hours triage rules · Routine repairs", quote:"Dripping taps, minor plumbing leaks, blocked sinks, faulty appliances, fencing, condensation and mould, and general repairs wait for the next working day. Mould is treated as a real repair, not cosmetic." }
+    ];
+    base.trail.push(
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Safety checks run", detail:"No gas, carbon monoxide, fire, flood or security indicators." },
+      { t:j.t.split(", ")[1], actor:"Assistant", action:"Classified as routine", detail:"Rule: Routine repairs. Logged for the morning summary." }
+    );
+    if(j.status==="Landlord notified"){
+      base.email = { to:"Landlord, "+j.prop, subject:"Maintenance report at your property, ref "+j.ref, text:"The tenant reported: "+j.issue.toLowerCase()+". It has been assessed as routine, so no emergency call-out was needed. The maintenance team will arrange a contractor on the next working day and we will confirm the cost with you before any work is instructed." };
+      base.trail.push({ t:j.t.split(", ")[1], actor:"System", action:"Landlord notified", detail:"Summary email sent to the landlord (simulated)." });
+    }
+  }
+  return base;
+}
 
 /* ===================== HELPERS ===================== */
 function fmtDate(iso){ return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
@@ -898,6 +1048,141 @@ function renderModule(mod){
     </div>`;
 }
 
+/* ===================== MAINTENANCE QUEUE ===================== */
+const CLSL2 = { emergency:"Emergency", signpost:"Signposted", routine:"Routine" };
+const CLSCHIP = { emergency:"chip-serious", signpost:"chip-amber", routine:"chip-trivial" };
+const MOPEN = ["On-call alerted","Awaiting maintenance team","Landlord notified"];
+let mqueueFilter = "open";
+function mOpenCount(){ return JOBS.filter(j=>MOPEN.includes(j.status)).length; }
+function applyMFilter(j){
+  switch(mqueueFilter){
+    case "open": return MOPEN.includes(j.status);
+    case "emergency": return j.cls==="emergency";
+    case "team": return j.status==="Awaiting maintenance team";
+    case "landlord": return j.status==="Landlord notified";
+    case "closed": return ["Signposted","Resolved"].includes(j.status);
+    case "all": return true;
+  }
+  return true;
+}
+function renderMQueue(){
+  const fb = document.getElementById('mf-branch').value;
+  const rows = JOBS.filter(applyMFilter).filter(j=> !fb || j.branch===fb);
+  const el = document.getElementById('mqueue-list');
+  if(!rows.length){ el.innerHTML = `<div class="empty">No jobs match these filters.</div>`; }
+  else {
+    el.innerHTML = rows.map(j=>`
+      <div class="row" data-openjob="${j.ref}">
+        <div><span class="chip ${CLSCHIP[j.cls]}">${CLSL2[j.cls]}</span></div>
+        <div class="ref">${j.ref}</div>
+        <div><div class="who2">${j.who} <span style="color:var(--sa-ink-300)">· ${j.prop}</span></div><div class="subj">${j.issue}</div></div>
+        <div class="branch"><small>Branch</small>${j.branch}</div>
+        <div class="due"><small>Reported</small><span>${j.t}</span></div>
+      </div>`).join('');
+  }
+  const oc = mOpenCount();
+  const em = JOBS.filter(j=>j.cls==="emergency" && MOPEN.includes(j.status)).length;
+  const morning = JOBS.filter(j=>j.cls==="routine" && MOPEN.includes(j.status)).length;
+  document.getElementById('mqueue-sub').textContent = `${oc} open · ${em} emergencies overnight · ${morning} for the morning team`;
+  document.getElementById('nav-mnt-count').textContent = oc;
+  document.getElementById('nav-mqueue-count').textContent = oc;
+}
+
+/* ===================== MAINTENANCE JOB ===================== */
+function mStatusChip(s){
+  const cls = s==="Resolved" ? "chip-ok" : s==="On-call alerted" ? "chip-amber" : "chip-ghost";
+  return `<span class="chip ${cls}">${s}</span>`;
+}
+function renderJob(ref){
+  const j = JOBS.find(x=>x.ref===ref);
+  const d = JOBDETAILS[ref] || buildGenericJob(j);
+  const rulesHtml = d.rules.map((r,i)=>`
+    <div class="citecard">
+      <div><span class="n">${i+1}</span><span class="claim">${r.claim}</span></div>
+      <span class="srcchip">${r.src}</span>
+      <div class="quote">"${r.quote}"</div>
+    </div>`).join("");
+  const notes = [
+    d.vuln ? `<div class="gap"><b>Vulnerability:</b> ${d.vuln}</div>` : "",
+    d.repeat ? `<div class="gap"><b>Repeat issue:</b> ${d.repeat.replace(/^Repeat issue: /,"")}</div>` : "",
+    d.prov ? `<div class="gap"><b>Provisional:</b> ${d.prov.replace(/^Provisional rule, /,"")}</div>` : ""
+  ].join("");
+  const trailHtml = d.trail.map(e=>`
+    <div class="citecard">
+      <div style="display:flex;gap:8px;align-items:baseline"><span class="claim">${e.action}</span><span style="margin-left:auto;color:var(--sa-ink-300);font-size:12px;flex:none">${e.t}</span></div>
+      <span class="srcchip">${e.actor}</span>
+      <div class="quote">${e.detail}</div>
+    </div>`).join("");
+  const alertMsg = d.alert ? `
+    <div class="msg">
+      <div class="av av-out">OC</div>
+      <div class="bubble out"><div class="from"><b>On-call alert</b> <span class="tag tag-out">Text message · simulated</span> <span class="t">${j.t}</span></div><p>${d.alert}</p></div>
+    </div>` : "";
+  const emailMsg = d.email ? `
+    <div class="msg">
+      <div class="av av-out">SA</div>
+      <div class="bubble out"><div class="from"><b>${d.email.to}</b> <span class="tag tag-out">Landlord email · simulated</span> <span class="t">${j.t}</span></div><p><b>${d.email.subject}</b></p><p>${d.email.text}</p></div>
+    </div>` : "";
+
+  document.getElementById('view-job').innerHTML = `
+    <div class="matter">
+      <div class="thread">
+        <div class="mhead">
+          <div class="crumbs"><a data-mview="mqueue">Job queue</a> › ${j.ref}</div>
+          <h2>${j.issue}</h2>
+          <div class="metaline">
+            <span class="chip ${CLSCHIP[j.cls]} chip-dot">${CLSL2[j.cls]}</span><span>·</span>
+            ${mStatusChip(j.status)}<span>·</span>
+            <span>Tenant <b>${j.who}</b> (${j.phone})</span><span>·</span>
+            <span>Property <b>${j.prop}</b></span><span>·</span>
+            <span>Branch <b>${j.branch}</b></span><span>·</span>
+            <span>Reported <b>${j.t}</b></span>
+          </div>
+        </div>
+        <div class="messages">
+          <p class="glabel">Out-of-hours conversation</p>
+          <div class="msg">
+            <div class="av av-in">${j.who.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase()}</div>
+            <div class="bubble"><div class="from"><b>${j.who}</b> <span class="tag tag-in">Reported · website chat</span> <span class="t">${j.t}</span></div><p>${d.report}</p></div>
+          </div>
+          <div class="msg">
+            <div class="av av-sys">SA</div>
+            <div class="bubble"><div class="from"><b>Streets Ahead Maintenance</b> <span class="tag tag-sys">Reply · shown in chat</span> <span class="t">${j.t}</span></div><p>${d.reply}</p></div>
+          </div>
+          ${alertMsg}
+          ${emailMsg}
+        </div>
+      </div>
+      <aside class="panel">
+        <div class="ptab">
+          <button class="on" data-ptab="triage">Triage <span class="count" style="font-size:11px">${d.rules.length}</span></button>
+          <button data-ptab="trail">Trail</button>
+        </div>
+        <div class="psec on" id="psec-triage">
+          <p class="glabel">Grounded in the triage rules</p>
+          ${rulesHtml}
+          ${notes}
+        </div>
+        <div class="psec" id="psec-trail">
+          <p class="glabel">Everything that happened, in order</p>
+          ${trailHtml}
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary">Mark resolved</button>
+          <button class="btn btn-ghost">Add note</button>
+          <button class="btn btn-ghost">Reassign</button>
+        </div>
+      </aside>
+    </div>`;
+
+  document.querySelectorAll('#view-job [data-ptab]').forEach(b=> b.addEventListener('click', ()=>{
+    document.querySelectorAll('#view-job [data-ptab]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('#view-job .psec').forEach(s=>s.classList.remove('on'));
+    document.getElementById('psec-'+b.dataset.ptab).classList.add('on');
+  }));
+}
+
 /* ===================== ROUTER ===================== */
 const VIEW_TITLES = { queue:"Queue", matter:"Review & approve", reporting:"Reporting", rules:"Rules & tone", examples:"Examples", library:"Document library", mattertypes:"Matter types", users:"Users & roles", audit:"Audit log", settings:"Settings" };
 const RENDERERS = { reporting:renderReporting, rules:renderRules, examples:renderExamples, library:renderLibrary, mattertypes:renderMatterTypes, users:renderUsers, audit:renderAudit, settings:renderSettings };
@@ -913,17 +1198,34 @@ function setView(view){
   document.getElementById('mod-eyebrow').textContent = "Module";
   document.getElementById('mod-title').textContent = "Complaints";
   document.getElementById('complaints-nav').style.display = "";
+  document.getElementById('maintenance-nav').style.display = "none";
+  document.getElementById('main').scrollTop = 0;
+  closeDrawer();
+}
+function setMView(view){
+  if(view==='mqueue') renderMQueue();
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('#maintenance-nav a[data-mview]').forEach(a=>a.classList.toggle('active', a.dataset.mview===view));
+  document.querySelectorAll('.nav a.module').forEach(a=>a.classList.toggle('active', a.dataset.module==='maintenance'));
+  document.querySelectorAll('#complaints-nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('complaints-nav').style.display = "none";
+  document.getElementById('maintenance-nav').style.display = "";
+  document.getElementById('mod-eyebrow').textContent = "Module";
+  document.getElementById('mod-title').textContent = "Maintenance";
   document.getElementById('main').scrollTop = 0;
   closeDrawer();
 }
 function setModule(mod){
   if(mod==='complaints'){ setView('queue'); return; }
+  if(mod==='maintenance'){ setMView('mqueue'); return; }
   renderModule(mod);
   document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-module').classList.add('active');
   document.querySelectorAll('.nav a.module').forEach(a=>a.classList.toggle('active', a.dataset.module===mod));
   document.querySelectorAll('#complaints-nav a').forEach(a=>a.classList.remove('active'));
   document.getElementById('complaints-nav').style.display = "none";
+  document.getElementById('maintenance-nav').style.display = "none";
   document.getElementById('mod-eyebrow').textContent = "Platform module";
   document.getElementById('mod-title').textContent = MODULE_COPY[mod].name;
   document.getElementById('main').scrollTop = 0;
@@ -934,6 +1236,14 @@ function openMatter(ref){
   document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-matter').classList.add('active');
   document.getElementById('mod-title').textContent = "Complaints";
+  document.getElementById('main').scrollTop = 0;
+  closeDrawer();
+}
+function openJob(ref){
+  renderJob(ref);
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-job').classList.add('active');
+  document.getElementById('mod-title').textContent = "Maintenance";
   document.getElementById('main').scrollTop = 0;
   closeDrawer();
 }
@@ -955,12 +1265,18 @@ BRANCHES.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.tex
 document.querySelectorAll('.nav a.module').forEach(a=> a.addEventListener('click', ()=> setModule(a.dataset.module)));
 // complaints sub-nav clicks
 document.querySelectorAll('#complaints-nav a').forEach(a=> a.addEventListener('click', ()=> setView(a.dataset.view)));
+// maintenance sub-nav clicks
+document.querySelectorAll('#maintenance-nav a[data-mview]').forEach(a=> a.addEventListener('click', ()=> setMView(a.dataset.mview)));
 // crumbs / data-view inside dynamic content
 document.addEventListener('click', e=>{
   const v = e.target.closest('[data-view]');
   if(v && v.closest('#view-matter')){ setView(v.dataset.view); return; }
+  const mv = e.target.closest('[data-mview]');
+  if(mv && mv.closest('#view-job')){ setMView(mv.dataset.mview); return; }
   const row = e.target.closest('[data-open]');
-  if(row){ openMatter(row.dataset.open); }
+  if(row){ openMatter(row.dataset.open); return; }
+  const jrow = e.target.closest('[data-openjob]');
+  if(jrow){ openJob(jrow.dataset.openjob); }
 });
 // queue filters
 document.querySelectorAll('#queue-toolbar [data-filter]').forEach(b=> b.addEventListener('click', ()=>{
@@ -970,6 +1286,15 @@ document.querySelectorAll('#queue-toolbar [data-filter]').forEach(b=> b.addEvent
 document.getElementById('f-branch').addEventListener('change', renderQueue);
 document.getElementById('f-sev').addEventListener('change', renderQueue);
 
+// maintenance branch filter options + queue filters
+const mfb = document.getElementById('mf-branch');
+BRANCHES.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; mfb.appendChild(o); });
+document.querySelectorAll('#mqueue-toolbar [data-mfilter]').forEach(b=> b.addEventListener('click', ()=>{
+  document.querySelectorAll('#mqueue-toolbar [data-mfilter]').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); mqueueFilter=b.dataset.mfilter; renderMQueue();
+}));
+mfb.addEventListener('change', renderMQueue);
+
 // drawer toggle
 document.getElementById('burger').addEventListener('click', ()=>{
   const n=document.getElementById('nav'); n.classList.toggle('open'); document.body.classList.toggle('drawer', n.classList.contains('open'));
@@ -978,6 +1303,7 @@ document.getElementById('scrim').addEventListener('click', closeDrawer);
 
 // initial
 renderQueue();
+renderMQueue();
 </script>
 </body>
 </html>
