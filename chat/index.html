@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Streets Ahead · Out-of-hours line</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  /* ============================================================
+   * Streets Ahead — Out-of-hours tenant chat (MVP demo)
+   * claude.ai-style landing: intro text centred above the
+   * composer; transitions to a conversation view on first send.
+   * Self-contained, no framework, no backend.
+   * ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--sa-cream); color: var(--sa-ink-900);
+    font-family: var(--sa-font-sans); font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+
+  .saos { font-family: var(--sa-font-display); font-weight: 700; letter-spacing: -0.02em; color: var(--sa-green-900); white-space: nowrap; }
+  .saos .slash { color: var(--sa-green-brand); }
+
+  /* ---- Demo notice ---- */
+  .demo-banner { background: var(--sa-ink-900); color: #fff; text-align: center; font-size: 12px; font-weight: 700; padding: 6px 12px; letter-spacing: 0.01em; }
+  .demo-banner span { color: var(--sa-green-600); }
+
+  /* ---- Shell ---- */
+  .shell {
+    max-width: 780px; width: 100%; margin: 0 auto;
+    height: 100dvh; display: flex; flex-direction: column;
+    background: var(--sa-cream);
+    border-left: var(--sa-border-hairline); border-right: var(--sa-border-hairline);
+  }
+
+  /* ---- Header ---- */
+  .top { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--sa-paper); border-bottom: var(--sa-border-hairline); }
+  .top .mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--sa-radius-md); background: var(--sa-green-100); }
+  .top .mark .saos { font-size: 16px; }
+  .top .ti { min-width: 0; line-height: 1.25; }
+  .top .ti .h { font-weight: 700; font-size: 15px; }
+  .top .ti .status { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--sa-ink-500); font-weight: 700; margin-top: 1px; }
+  .top .ti .status .sd { width: 8px; height: 8px; border-radius: 50%; background: var(--sa-warning); box-shadow: 0 0 0 3px rgba(180,131,31,0.16); }
+
+  /* ---- Landing (claude.ai/new style) ---- */
+  .landing { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 26px; padding: 24px 20px 44px; overflow-y: auto; }
+  .hero { max-width: 640px; text-align: center; animation: rise var(--sa-dur-slow) var(--sa-ease-emph) both; }
+  .hero .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: var(--sa-tracking-eyebrow); text-transform: uppercase; color: var(--sa-green-800); margin-bottom: 14px; }
+  .hero .title { font-family: var(--sa-font-display); font-weight: 700; font-size: 27px; line-height: 1.22; letter-spacing: var(--sa-tracking-tight); color: var(--sa-ink-900); margin: 0 0 16px; text-wrap: balance; }
+  .hero p { font-size: 16px; line-height: 1.6; color: var(--sa-ink-700); margin: 0 auto 12px; max-width: 54ch; }
+  .hero p:last-child { margin-bottom: 0; }
+
+  /* ---- Conversation transcript ---- */
+  .scroll { flex: 1; overflow-y: auto; width: 100%; max-width: 740px; margin: 0 auto; padding: 22px 16px 10px; }
+  .m { display: flex; gap: 10px; margin: 0 0 14px; align-items: flex-end; animation: rise var(--sa-dur-base) var(--sa-ease-emph) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .m.tenant { flex-direction: row-reverse; }
+  .m .av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 700; font-size: 11px; color: #fff; }
+  .av-sa { background: var(--sa-green-brand); }
+  .av-you { background: var(--sa-ink-700); }
+  .b { max-width: 80%; background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: 16px; border-bottom-left-radius: 5px; padding: 11px 15px; box-shadow: var(--sa-elev-1); font-size: 15px; line-height: 1.5; color: var(--sa-ink-900); }
+  .b p { margin: 0 0 8px; max-width: none; font-size: 15px; line-height: 1.5; }
+  .b p:last-child { margin-bottom: 0; }
+  .m.tenant .b { background: var(--sa-green-050); border-color: var(--sa-green-200); border-radius: 16px; border-bottom-right-radius: 5px; }
+  .b.alert { border-left: 3px solid var(--sa-danger); background: #FDF6F5; border-color: #EAD3CF; }
+  .b .ec { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: var(--sa-tracking-eyebrow); text-transform: uppercase; color: var(--sa-danger); margin-bottom: 6px; }
+  .b .ec::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sa-danger); }
+  .b strong { font-weight: 700; }
+  .b .tel { font-weight: 700; color: var(--sa-green-900); white-space: nowrap; }
+  .b .refline { margin-top: 8px; font-size: 12px; font-weight: 700; letter-spacing: var(--sa-tracking-eyebrow); text-transform: uppercase; color: var(--sa-ink-500); }
+
+  /* ---- Typing ---- */
+  .m.typing .b { display: inline-flex; gap: 5px; padding: 14px 16px; }
+  .m.typing .dotp { width: 7px; height: 7px; border-radius: 50%; background: var(--sa-ink-300); animation: blink 1.2s infinite ease-in-out; }
+  .m.typing .dotp:nth-child(2) { animation-delay: 0.18s; }
+  .m.typing .dotp:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: 0.25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-2px); } }
+
+  /* ---- On-call SMS card (the demo money-shot) ---- */
+  .sms-wrap { margin: 2px 0 16px; animation: rise var(--sa-dur-slow) var(--sa-ease-emph) both; }
+  .sms-label { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: var(--sa-tracking-eyebrow); text-transform: uppercase; color: var(--sa-ink-500); margin-bottom: 8px; }
+  .sms-card { background: var(--sa-ink-900); color: #fff; border-radius: 20px; padding: 14px 15px 16px; max-width: 340px; margin: 0 auto; box-shadow: var(--sa-elev-3); }
+  .sms-card .ph { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.55); margin-bottom: 10px; }
+  .sms-card .ph .rd { width: 8px; height: 8px; border-radius: 50%; background: var(--sa-danger); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(166,54,44,0.6); } 100% { box-shadow: 0 0 0 8px rgba(166,54,44,0); } }
+  .sms-card .ph b { color: #fff; }
+  .sms-card .ph .clk { margin-left: auto; }
+  .sms-card .txt { background: rgba(255,255,255,0.09); border-radius: 13px; padding: 11px 13px; font-size: 13.5px; line-height: 1.5; color: #F4F6EF; }
+  .sms-card .snd { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px; }
+
+  /* ---- Dock: composer + suggestions (moves between landing and bottom) ---- */
+  .dock { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 720px; margin: 0 auto; }
+  .shell.chat .dock { flex-direction: column-reverse; }
+
+  .suggest { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .suggest:empty { display: none; }
+  .suggest button { border: var(--sa-border-hairline); background: var(--sa-paper); border-radius: var(--sa-radius-pill); padding: 8px 14px; font-size: 13px; font-weight: 700; color: var(--sa-green-800); cursor: pointer; transition: border-color var(--sa-dur-fast), background var(--sa-dur-fast); }
+  .suggest button:hover { border-color: var(--sa-green-brand); background: var(--sa-green-050); }
+  .suggest button.demo { color: var(--sa-ink-500); }
+
+  .composer { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--sa-paper); border: var(--sa-border-hairline); border-radius: 26px; padding: 7px 7px 7px 20px; box-shadow: var(--sa-elev-2); transition: box-shadow var(--sa-dur-base), border-color var(--sa-dur-base); }
+  .composer:focus-within { border-color: var(--sa-green-brand); box-shadow: var(--sa-elev-3); }
+  .composer input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 16px; padding: 11px 0; color: var(--sa-ink-900); }
+  .composer .send { width: 42px; height: 42px; flex: none; border: 0; border-radius: 50%; background: var(--sa-green-brand); color: #fff; cursor: pointer; display: grid; place-items: center; transition: background var(--sa-dur-fast); }
+  .composer .send:hover { background: var(--sa-green-800); }
+  .composer .send:disabled { background: var(--sa-ink-300); cursor: default; }
+  .composer .send svg { width: 20px; height: 20px; }
+
+  /* ---- Bottom bar (conversation state) ---- */
+  .bottombar { padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--sa-paper); border-top: var(--sa-border-hairline); }
+
+  /* Show/hide by state */
+  .shell.chat  .landing   { display: none; }
+  .shell.landing .scroll  { display: none; }
+  .shell.landing .bottombar { display: none; }
+
+  @media (max-width: 780px) { .shell { border-left: 0; border-right: 0; } }
+</style>
+</head>
+<body>
+
+<div class="shell landing" id="shell">
+  <div class="demo-banner">Demonstration only <span>&bull;</span> not a live emergency service</div>
+
+  <header class="top">
+    <div class="mark"><span class="saos">SA<span class="slash">\</span></span></div>
+    <div class="ti">
+      <div class="h">Streets Ahead &mdash; Out-of-hours line</div>
+      <div class="status"><span class="sd"></span> Office closed &middot; emergencies only</div>
+    </div>
+  </header>
+
+  <!-- Conversation transcript (shown once chatting) -->
+  <main class="scroll" id="scroll" aria-live="polite"></main>
+
+  <!-- Landing hero (claude.ai/new style) -->
+  <section class="landing" id="landing">
+    <div class="hero">
+      <div class="eyebrow">Streets Ahead property management</div>
+      <h1 class="title">You have reached the Streets Ahead out-of-hours line. Our offices are closed at the moment.</h1>
+      <p>I can help you report a genuine emergency at your rented property right now, and make sure the right person is alerted. Anything that is not urgent can wait until the office reopens.</p>
+      <p>To start, please tell me the address of your Streets Ahead property.</p>
+    </div>
+
+    <!-- Dock lives here in the landing state, moves to the bottom bar once chatting -->
+    <div class="dock" id="dock">
+      <form class="composer" id="composer" autocomplete="off">
+        <input id="input" type="text" placeholder="Type your property address to start" aria-label="Type your message" />
+        <button class="send" id="send" type="submit" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+        </button>
+      </form>
+      <div class="suggest" id="suggest"></div>
+    </div>
+  </section>
+
+  <!-- Bottom bar (receives the dock once chatting) -->
+  <div class="bottombar" id="bottombar"></div>
+</div>
+
+<script>
+/* ============================================================
+ * DEMO DATA
+ * ============================================================ */
+const OFFICE_PHONE = "020 8655 1300";
+const ONCALL_LINE  = "On-call engineer";        // single number for v1 (rota-ready)
+
+/* Managed-property list. In the live build this is a static Reapit export.
+ * Here it is a short hard-coded sample; matching is on the street name. */
+const PROPERTIES = [
+  { street: "morland road",          full: "22 Morland Road, Addiscombe, CR0 6NA" },
+  { street: "sanderstead road",      full: "14 Sanderstead Road, South Croydon, CR2 0PA" },
+  { street: "whytecliffe road",      full: "8 Whytecliffe Road, Purley, CR8 2AT" },
+  { street: "limes road",            full: "2 Limes Road, Central Croydon, CR0 2HB" },
+  { street: "chipstead valley road", full: "40 Chipstead Valley Road, Coulsdon, CR5 3BB" },
+  { street: "auckland road",         full: "55 Auckland Road, Crystal Palace, SE19 2DL" }
+];
+
+/* Short label used in the on-call text, per emergency category */
+const SUMMARY = {
+  gas:        "Smell of gas reported",
+  security:   "Property left insecure",
+  electrical: "Dangerous electrical fault",
+  flood:      "Water leak that cannot be stopped",
+  power:      "Total loss of power to the property",
+  heating:    "No heating or hot water, vulnerable occupant present",
+  generic:    "Emergency reported at the property"
+};
+
+/* ============================================================
+ * STATE
+ * ============================================================ */
+const ctx = { address: null, name: null, issue: null, category: null, phone: null, addrTries: 0, issueTries: 0 };
+let stage = "address";
+let locked = false;
+let started = false;
+
+const shellEl = document.getElementById("shell");
+const landingEl = document.getElementById("landing");
+const bottombarEl = document.getElementById("bottombar");
+const dockEl = document.getElementById("dock");
+const scrollEl = document.getElementById("scroll");
+const suggestEl = document.getElementById("suggest");
+const inputEl = document.getElementById("input");
+const sendEl = document.getElementById("send");
+
+/* ============================================================
+ * DOM HELPERS
+ * ============================================================ */
+function scrollDown(){ scrollEl.scrollTop = scrollEl.scrollHeight; }
+
+function addUser(text){
+  const m = document.createElement("div");
+  m.className = "m tenant";
+  m.innerHTML = `<div class="av av-you">You</div><div class="b"></div>`;
+  m.querySelector(".b").textContent = text;
+  scrollEl.appendChild(m); scrollDown();
+}
+function addBot(html, opts = {}){
+  const m = document.createElement("div");
+  m.className = "m assistant";
+  const alert = opts.alert ? " alert" : "";
+  const chip = opts.alert ? `<span class="ec">Emergency</span>` : "";
+  m.innerHTML = `<div class="av av-sa">SA</div><div class="b${alert}">${chip}${html}</div>`;
+  scrollEl.appendChild(m); scrollDown();
+}
+function addTyping(){
+  const m = document.createElement("div");
+  m.className = "m assistant typing";
+  m.innerHTML = `<div class="av av-sa">SA</div><div class="b"><span class="dotp"></span><span class="dotp"></span><span class="dotp"></span></div>`;
+  scrollEl.appendChild(m); scrollDown();
+  return m;
+}
+function addSMS(text, meta){
+  const w = document.createElement("div");
+  w.className = "sms-wrap";
+  w.innerHTML =
+    `<div class="sms-label">Demonstration &mdash; the text your on-call engineer receives</div>
+     <div class="sms-card">
+       <div class="ph"><span class="rd"></span> <b>${ONCALL_LINE}</b> &middot; new message <span class="clk">${meta.time}</span></div>
+       <div class="txt"></div>
+       <div class="snd">from Streets Ahead Maintenance</div>
+     </div>`;
+  w.querySelector(".txt").textContent = text;
+  scrollEl.appendChild(w); scrollDown();
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+async function botSay(html, opts = {}){
+  const typing = addTyping();
+  await sleep(Math.min(1200, 450 + html.replace(/<[^>]+>/g, "").length * 11));
+  typing.remove();
+  addBot(html, opts);
+  await sleep(180);
+}
+
+/* ============================================================
+ * TRIAGE (keyword rules, in-browser)
+ * ============================================================ */
+function classify(raw){
+  const t = " " + raw.toLowerCase().replace(/[^\w\s'-]/g, " ") + " ";
+  if (/carbon monoxide|monoxide|\bco alarm\b|\bco detector\b/.test(t)) return "gas";
+  if (/(smell|smelling|strong|leak|leaking|hissing|fumes)[^]{0,20}\bgas\b|\bgas\b[^]{0,20}(smell|leak|leaking|hissing|fumes)/.test(t)) return "gas";
+  if (/\bgas\b/.test(t)) return "gas_clarify";
+  if (/\bfire\b|\bflames?\b|smoke (filling|coming|everywhere)/.test(t)) return "fire";
+  if (/break[- ]?in|broke in|broken in|burglar|burgled|forced (the )?(door|lock|window)|won'?t lock|can'?t lock|cannot lock|won'?t secure|can'?t secure|not secure|insecure|smashed|kicked in/.test(t)) return "security";
+  if (/spark|sparking|electric shock|shocked me|exposed wire|bare wire|smell of burning|burning smell/.test(t)) return "electrical";
+  if (/water (in|on|from) the (street|road|pavement)|mains water|water main|drain in the road|manhole/.test(t)) return "street_water";
+  if (/flood|flooding|burst|gushing|pouring|water everywhere|can'?t stop the water|cannot stop the water|ceiling (is )?(leak|drip|coming|bulging)|water (is )?coming through/.test(t)) return "flood";
+  if (/\bleak\b|leaking|pipe (has )?burst|water (dripping|coming)/.test(t)) return "leak_clarify";
+  if (/power cut|power'?s? (out|off|gone)|no power|no electricity|lost power|electricity (is )?(out|off|gone)|blackout/.test(t)) return "power_clarify";
+  if (/no heating|no hot water|not heating|isn'?t heating|heating (is )?(not|isn'?t) work|\bboiler\b|radiator|central heating|cold water only/.test(t)) return "heating_clarify";
+  if (/dripping tap|tap (is )?drip|blocked (sink|drain|toilet)|won'?t flush|washing machine|dishwasher|\bfridge\b|freezer|\boven\b|cooker|\bhob\b|appliance|mould|mold|\bdamp\b|fence|light bulb|\bbulb\b|door handle|hinge|draught|squeak|doorbell|garden|shelf|blind/.test(t)) return "routine";
+  return "unknown";
+}
+
+const YES = /\byes\b|\byeah\b|\byep\b|\bi (can|do)\b|there is|someone|somebody|still|worse/;
+const NO  = /\bno\b|\bnope\b|nobody|no one|just the|only the|stopped|it'?s stopped|contained|under control|fine|healthy|adults? only/;
+
+/* ============================================================
+ * FLOW
+ * ============================================================ */
+function findProperty(raw){
+  const t = raw.toLowerCase();
+  return PROPERTIES.find(p => t.includes(p.street)) || null;
+}
+
+async function startEmergency(kind, script){
+  ctx.category = kind;
+  if (script) await botSay(script, { alert: true });
+  await botSay(`I am alerting our on-call engineer now. What is the best mobile number for them to call you back on?`);
+  stage = "phone";
+  renderSuggest();
+}
+
+async function finishRoutine(){
+  await botSay(`Thank you. This does not need an emergency call-out tonight, so it can wait until the office reopens. Please call us on <span class="tel">${OFFICE_PHONE}</span> during opening hours and the team will arrange a repair. If anything changes and it becomes urgent, come back to this chat.`);
+  end();
+}
+async function finishSignpost(html){ await botSay(html); end(); }
+
+function end(){ stage = "done"; renderSuggest(); }
+
+async function handleAddress(t){
+  const p = findProperty(t);
+  if (p){
+    ctx.address = p.full;
+    await botSay(`Thank you. I have matched that to a property we manage: <strong>${p.full}</strong>. And what is your name?`);
+    stage = "name"; renderSuggest(); return;
+  }
+  ctx.addrTries++;
+  if (ctx.addrTries >= 2){
+    await botSay(`I am sorry, I cannot match that address to a Streets Ahead managed property. If you are a Streets Ahead tenant, please call the office on <span class="tel">${OFFICE_PHONE}</span> when we reopen and the team will help.`);
+    await botSay(`If you have a genuine emergency right now, please contact the right service directly: gas, call the National Gas Emergency Service on <span class="tel">0800 111 999</span>; fire or danger to life, call <span class="tel">999</span>.`);
+    end(); return;
+  }
+  await botSay(`I could not find that address on our records. Please check it and type it again, including the house number.`);
+  renderSuggest();
+}
+
+async function handleIssue(t){
+  ctx.issue = t;
+  const c = classify(t);
+  switch (c){
+    case "gas":
+      return startEmergency("gas", `Please leave the property now with everyone in the household. Do not touch any light switches or plug sockets, and do not use naked flames. Once you are outside, call the National Gas Emergency Service on <span class="tel">0800 111 999</span>.`);
+    case "security":
+      return startEmergency("security", `Thank you for telling me. Because the property has been left insecure, I am treating this as an emergency. If a crime is in progress or you feel unsafe, call <span class="tel">999</span> now.`);
+    case "electrical":
+      return startEmergency("electrical", `Please keep everyone away from the affected sockets, switches or wiring and do not touch them. I am treating this as an emergency.`);
+    case "flood":
+      return startEmergency("flood", `If you can reach it safely, turn the water off at the stopcock and move anything valuable clear of the water. I am treating this as an emergency.`);
+    case "fire":
+      return finishSignpost(`If there is a fire or anyone is in danger, call <span class="tel">999</span> now and leave the property. This line cannot help with a fire directly. Once you are safe, the office will follow up in the morning.`);
+    case "street_water":
+      return finishSignpost(`This looks like a problem with the water supply in the street rather than inside your home. Please report it to <strong>Thames Water</strong>, who look after the mains. If it starts to affect the inside of the property, come back and let me know.`);
+    case "gas_clarify":
+      stage = "clarify_gas";
+      await botSay(`Can you smell gas at all, or is it just that a gas appliance is not working?`);
+      return renderSuggest();
+    case "leak_clarify":
+      stage = "clarify_leak";
+      await botSay(`Is the water still flowing and you cannot stop it, or have you managed to stop it at the stopcock?`);
+      return renderSuggest();
+    case "power_clarify":
+      stage = "clarify_power";
+      await botSay(`Is the power cut affecting just your property, or the whole street or area?`);
+      return renderSuggest();
+    case "heating_clarify":
+      stage = "clarify_heating";
+      await botSay(`Is there anyone vulnerable in the property tonight, for example a young child, someone elderly, or someone who is unwell?`);
+      return renderSuggest();
+    case "routine":
+      return finishRoutine();
+    default:
+      ctx.issueTries++;
+      if (ctx.issueTries >= 2){
+        stage = "safety_gate";
+        await botSay(`Thank you. To make sure I handle this correctly: is anyone in immediate danger, or is the property unsafe to stay in right now?`);
+        return renderSuggest();
+      }
+      await botSay(`I want to get this right. Can you tell me a little more? For example, is it to do with gas, water or a leak, electrics, heating, or the security of the property?`);
+      return renderSuggest();
+  }
+}
+
+async function handleGasClarify(t){
+  if (/smell|yes|can smell|there is|strong|fumes/.test(t.toLowerCase()) && !/no|just the|only the|not work/.test(t.toLowerCase()))
+    return startEmergency("gas", `Please leave the property now with everyone in the household. Do not touch light switches or plug sockets, and do not use naked flames. Once you are outside, call the National Gas Emergency Service on <span class="tel">0800 111 999</span>.`);
+  await botSay(`Thank you. As there is no smell of gas, a gas appliance that is not working is not an out-of-hours emergency. Please call the office on <span class="tel">${OFFICE_PHONE}</span> when we reopen and the team will arrange a repair.`);
+  end();
+}
+async function handleLeakClarify(t){
+  const s = t.toLowerCase();
+  const stopped = /stopped|managed|turned it off|turned off|under control|contained|at the stopcock/.test(s) && !/can'?t|cannot|still|won'?t/.test(s);
+  if (stopped){
+    await botSay(`Good, thank you. As the water is stopped, this can be handled as a routine repair. Please call the office on <span class="tel">${OFFICE_PHONE}</span> when we reopen and the team will arrange it.`);
+    return end();
+  }
+  return startEmergency("flood", `Understood. A leak that cannot be stopped is an emergency. If you can reach it safely, turn the water off at the stopcock and move valuables clear of the water.`);
+}
+async function handlePowerClarify(t){
+  const s = t.toLowerCase();
+  if (/whole|street|area|everyone|neighbour|others|all of|estate|block/.test(s))
+    return finishSignpost(`That sounds like a wider power cut in your area rather than a fault at the property. You can call <span class="tel">105</span>, the free national number for power cuts, for an update. If your property alone loses power, come back and tell me.`);
+  return startEmergency("power", `A total loss of power to the property out of hours is treated as an emergency.`);
+}
+async function handleHeatingClarify(t){
+  const s = t.toLowerCase();
+  if (/yes|baby|child|children|infant|newborn|toddler|elderly|old|unwell|ill|disabled|pregnant|vulnerable/.test(s) && !/^no\b/.test(s))
+    return startEmergency("heating", `Thank you for letting me know. Because there is someone vulnerable in the property, I am treating the loss of heating and hot water as an emergency. Please do not use portable gas heaters indoors.`);
+  await botSay(`Thank you. As there is no one vulnerable in the property tonight, a loss of heating or hot water does not need an emergency call-out. Please call the office on <span class="tel">${OFFICE_PHONE}</span> when we reopen and the team will attend as a priority.`);
+  end();
+}
+async function handleSafetyGate(t){
+  if (YES.test(t.toLowerCase()) && !NO.test(t.toLowerCase()))
+    return startEmergency("generic", `Thank you. I am treating this as an emergency. If anyone is in immediate danger, call <span class="tel">999</span> now.`);
+  return finishRoutine();
+}
+
+function ref(){ return "SA-MNT-2026-" + String(Math.floor(1000 + Math.random() * 9000)); }
+function clock(){ const d = new Date(); return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0"); }
+
+async function handlePhone(t){
+  const digits = t.replace(/[^\d]/g, "");
+  if (digits.length < 7){
+    await botSay(`That does not look like a phone number. Please type the best mobile number for the engineer to reach you on.`);
+    return;
+  }
+  ctx.phone = t.trim();
+  const r = ref(); const time = clock();
+  const label = SUMMARY[ctx.category] || SUMMARY.generic;
+  const smsText = `EMERGENCY ${r}. ${label} at ${ctx.address}. Tenant ${ctx.name}, ${ctx.phone}. Reported ${time}.`;
+  await botSay(`Thank you. Our on-call engineer has now been alerted and has your details.`);
+  addSMS(smsText, { time });
+  await sleep(220);
+  await botSay(`<p>Your reference for this report is below. Please keep your phone to hand, the engineer will call you back as soon as they can.</p><p>If the situation gets worse or anyone is in danger, call <span class="tel">999</span>.</p><div class="refline">Reference ${r}</div>`);
+  end();
+}
+
+/* ============================================================
+ * ROUTER
+ * ============================================================ */
+async function route(text){
+  const t = text.trim();
+  if (!t) return;
+  if (stage === "done"){
+    addUser(t);
+    lock(true);
+    await botSay(`This demonstration report is complete. Tap <strong>Start a new report</strong> below to try another scenario.`);
+    lock(false);
+    return;
+  }
+  addUser(t);
+  lock(true);
+  try {
+    switch (stage){
+      case "address":        await handleAddress(t); break;
+      case "name":           ctx.name = t.trim().replace(/^(it'?s|i'?m|im|my name is|this is|name'?s)\s+/i, "").replace(/\s+/g," ") || t.trim(); stage = "issue";
+                             await botSay(`Thank you, ${ctx.name.split(" ")[0]}. Now please tell me what is happening at the property tonight.`); renderSuggest(); break;
+      case "issue":          await handleIssue(t); break;
+      case "clarify_gas":    await handleGasClarify(t); break;
+      case "clarify_leak":   await handleLeakClarify(t); break;
+      case "clarify_power":  await handlePowerClarify(t); break;
+      case "clarify_heating":await handleHeatingClarify(t); break;
+      case "safety_gate":    await handleSafetyGate(t); break;
+      case "phone":          await handlePhone(t); break;
+    }
+  } finally {
+    lock(false);
+  }
+}
+
+function lock(on){
+  locked = on;
+  sendEl.disabled = on;
+  inputEl.disabled = on;
+  if (!on) inputEl.focus();
+}
+
+/* ============================================================
+ * SUGGESTION CHIPS (stage-aware quick replies)
+ * ============================================================ */
+const CHIPS = {
+  address:        [["Use 22 Morland Road (demo)", "22 Morland Road", true]],
+  issue:          [["Smell of gas", "There is a smell of gas in the hallway"], ["Break-in", "Someone has broken in and the front door will not lock"], ["No hot water", "We have no heating or hot water"], ["Blocked sink", "The kitchen sink is blocked and will not drain"]],
+  clarify_gas:    [["I can smell gas", "Yes, I can smell gas"], ["Just the appliance", "No, just the appliance is not working"]],
+  clarify_leak:   [["Still flowing", "It is still flowing and I cannot stop it"], ["I have stopped it", "I have stopped it at the stopcock"]],
+  clarify_power:  [["Just my property", "Just my property"], ["Whole street", "The whole street is out"]],
+  clarify_heating:[["Yes, a baby", "Yes, there is a baby in the property"], ["No", "No, just adults"]],
+  safety_gate:    [["Yes", "Yes"], ["No", "No"]],
+  done:           [["Start a new report", "__reset__", true]]
+};
+function renderSuggest(){
+  suggestEl.innerHTML = "";
+  const set = CHIPS[stage];
+  if (!set) return;
+  set.forEach(([label, value, demo]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    if (demo) b.classList.add("demo");
+    b.addEventListener("click", () => {
+      if (locked) return;
+      if (value === "__reset__") return reset();
+      handleSend(value);
+    });
+    suggestEl.appendChild(b);
+  });
+}
+
+/* ============================================================
+ * SEND / TRANSITION / INIT
+ * ============================================================ */
+function startChat(){
+  bottombarEl.appendChild(dockEl);          // move composer + chips to the bottom
+  shellEl.classList.remove("landing");
+  shellEl.classList.add("chat");
+  inputEl.placeholder = "Type your message";
+}
+
+async function handleSend(text){
+  const t = (text || "").trim();
+  if (!t || locked) return;
+  if (!started){ started = true; startChat(); }
+  suggestEl.innerHTML = "";
+  await route(t);
+}
+
+document.getElementById("composer").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = inputEl.value;
+  inputEl.value = "";
+  handleSend(v);
+});
+
+function reset(){
+  scrollEl.innerHTML = "";
+  landingEl.appendChild(dockEl);             // move composer + chips back up
+  shellEl.classList.remove("chat");
+  shellEl.classList.add("landing");
+  Object.assign(ctx, { address: null, name: null, issue: null, category: null, phone: null, addrTries: 0, issueTries: 0 });
+  stage = "address"; started = false;
+  inputEl.placeholder = "Type your property address to start";
+  lock(false);
+  renderSuggest();
+}
+
+renderSuggest();
+inputEl.focus();
+</script>
+</body>
+</html>
